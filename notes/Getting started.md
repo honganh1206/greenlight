@@ -1,8 +1,8 @@
 
 ### What I did
 
-- Read command-line flags to struct 
-- Add logger to write messages to standard out stream 
+- Read command-line flags to struct
+- Add logger to write messages to standard out stream
 - Set up basic Mux (HTTP request multiplexer)
 - Add `healthCheckHandler` function as a method for the `application` struct
 
@@ -70,3 +70,7 @@ go run ./cmd/api -port=3030 -env=production
 ```
 
 [[API Versioning]]
+
+## Choosing a router
+
+- I decided to write a custom router following the Regex Table approach - a table of pre-compiled `regexp` objects

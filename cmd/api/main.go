@@ -44,7 +44,7 @@ func main() {
 	// Setup the HTTP server
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port), // String formatting
-		Handler:      mux,
+		Handler:      http.HandlerFunc(app.serve),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second, // TODO: Hardcoded values here
 		WriteTimeout: 30 * time.Second,
