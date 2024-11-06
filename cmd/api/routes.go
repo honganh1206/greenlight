@@ -27,7 +27,7 @@ func (app *application) routes() []route {
 	return []route{
 		newRoute(http.MethodGet, "/v1/healthcheck", app.healthCheckHandler),
 		newRoute(http.MethodPost, "/v1/movies", app.createMovieHandler),
-		newRoute(http.MethodGet, "/v1/movies", app.showMovieHandler),
+		newRoute(http.MethodGet, "/v1/movies/([0-9]+)", app.showMovieHandler),
 	}
 }
 

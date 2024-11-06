@@ -73,4 +73,10 @@ go run ./cmd/api -port=3030 -env=production
 
 ## Choosing a router
 
-- I decided to write a custom router following the Regex Table approach - a table of pre-compiled `regexp` objects
+- I decided to write a custom router following the Regex Table approach - a table of pre-compiled `regexp` objects in `routes.go`
+
+
+## Additional information
+
+Usually conflicting routes are not allowed and there are no routing priority rules you have to worry about, but there are libraries like `pat, chi, mux` that *support conflicting routes*
+
