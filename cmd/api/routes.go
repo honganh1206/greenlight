@@ -1,4 +1,4 @@
-// Go HTTP router based on a table of regexes
+// Custom Go HTTP router based on a table of regexes
 
 package main
 
@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Empty struct takes zero memory + uniquely identify the key for type safety
 type ctxKey struct{}
 
 // Helper to handle path parameters
@@ -55,12 +56,14 @@ func (app *application) serve(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Handle 405
 	// Check if any route matches the URL but with an incorrect HTTP method
 	if len(allow) > 0 {
 		w.Header().Set("Allow", strings.Join(allow, ", "))
-		http.Error(w, "405 Method Not Allowed", http.StatusMethodNotAllowed)
+		app.methodNotAllowedResponse(w, r)
 		return
 	}
 
-	http.NotFound(w, r)
+	// Handle 404
+	app.notFoundResponse(w, r)
 }
