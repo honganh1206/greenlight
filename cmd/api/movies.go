@@ -34,10 +34,10 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
 	// Target destination is a struct => Struct fields must be exported (starting with capital letters)
 	var input struct {
-		Title   string   `json:"title"`
-		Year    int32    `json:"year"`
-		Runtime int32    `json:"runtime"`
-		Genres  []string `json:"genres"`
+		Title   string       `json:"title"`
+		Year    int32        `json:"year"`
+		Runtime data.Runtime `json:"runtime"`
+		Genres  []string     `json:"genres"`
 	}
 
 	// No need to close r.Body - Go will handle it automatically

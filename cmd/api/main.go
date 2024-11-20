@@ -20,7 +20,7 @@ type config struct {
 
 type application struct {
 	config config
-	logger *log.Logger
+	logger *logger
 }
 
 func main() {
@@ -31,7 +31,15 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	flag.Parse()
 
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	f, fError := os.OpenFile("../tmp/info.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+
+	if fError != nil {
+		log.Fatal(fError)
+	}
+
+	f.Close()
+
+	logger := newLogger(f)
 
 	app := &application{
 		config: cfg,
@@ -50,7 +58,7 @@ func main() {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	logger.Printf("Starting %s server on port %s", cfg.env, srv.Addr)
+	logger.infoLog.Printf("Starting %s server on port %s", cfg.env, srv.Addr)
 	err := srv.ListenAndServe()
-	logger.Fatal(err)
+	logger.errorLog.Fatal(err)
 }
