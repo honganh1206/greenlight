@@ -10,7 +10,7 @@ func TestServe(t *testing.T) {
 	tl := newTestLogger(t)
 
 	app := newTestApplication(t, tl)
-	// Test cases for different scenarios
+
 	tests := []struct {
 		name           string
 		method         string
@@ -24,13 +24,13 @@ func TestServe(t *testing.T) {
 			url:            "/v1/healthcheck",
 			expectedStatus: http.StatusOK,
 		},
-		// {
-		// 	name:           "Matching Route with Incorrect Method",
-		// 	method:         "PUT",
-		// 	url:            "/test",
-		// 	expectedStatus: http.StatusMethodNotAllowed,
-		// 	expectedAllow:  "GET, POST",
-		// },
+		{
+			name:           "Matching Route with Incorrect Method",
+			method:         "PUT",
+			url:            "/v1/movies",
+			expectedStatus: http.StatusMethodNotAllowed,
+			expectedAllow:  "POST",
+		},
 		{
 			name:           "No Matching Route",
 			method:         "GET",
@@ -44,17 +44,14 @@ func TestServe(t *testing.T) {
 			req := httptest.NewRequest(tc.method, tc.url, nil)
 			rec := httptest.NewRecorder()
 
-			// Call the serve method
 			app.serve(rec, req)
 
-			// Check status code
 			res := rec.Result()
 			defer res.Body.Close()
 			if res.StatusCode != tc.expectedStatus {
 				t.Errorf("expected status %d, got %d", tc.expectedStatus, res.StatusCode)
 			}
 
-			// Check Allow header for 405 responses
 			if tc.expectedStatus == http.StatusMethodNotAllowed {
 				allow := res.Header.Get("Allow")
 				if allow != tc.expectedAllow {
