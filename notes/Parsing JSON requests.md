@@ -25,3 +25,15 @@
 
 ## Custom JSON Decoding
 - Somestimes we need to *intercept the decoding process* to do some manual conversion. In such cases, Go will call the `UnmarshalJSON()` from the `Unmarshaler` interface to decode JSON values so we might need to implement our own `UnmarshalJSON()`.
+
+## Validating JSON input
+- We create some helper functions inside `internal/validator/validator.go` so we can use it inside `cmd/api` without exposing it to other code bases.
+- The failed validation messages are conditionally sequenced, so if the first one checks out as true, the second one will not be checked.
+
+```go
+
+v.Check(input.Title != "", "title", "must be provided") // If this one is valid
+v.Check(len(input.Title) <= 500, "title", "must not be more than 500 bytes long") // This second message will not be added
+```
+
+- We might want to put the validation checks to a standalone function to avoid duplication

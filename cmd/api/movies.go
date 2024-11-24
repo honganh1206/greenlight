@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"greenlight.honganhpham.net/internal/data"
+	"greenlight.honganhpham.net/internal/validator"
 )
 
 func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +47,22 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
+	}
+
+	// Copy data to a new Movie struct so as to take advantage of validation function
+	movie := &data.Movie{
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
+	}
+
+	// In a complex system, we might need multiple validation helpers
+	// So we initialize the validator in the handler to create flexibility
+	v := validator.New()
+
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
 	}
 
 	fmt.Fprintf(w, "%+v\n", input)
