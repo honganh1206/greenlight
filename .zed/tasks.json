@@ -1,0 +1,15 @@
+// Static tasks configuration.
+//
+// Example:
+[
+  {
+    "label": "Run",
+    "command": "go run ./cmd/api",
+    "use_new_terminal": false
+  },
+  {
+    "label": "Test",
+    "command": "go test ./..",
+    "use_new_terminal": false
+  }
+]

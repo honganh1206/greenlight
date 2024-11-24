@@ -6,11 +6,8 @@ import (
 	"time"
 
 	"greenlight.honganhpham.net/internal/data"
+	"greenlight.honganhpham.net/internal/validator"
 )
-
-func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "create a new movie")
-}
 
 func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
@@ -33,4 +30,40 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
+}
+
+func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
+	// Target destination is a struct => Struct fields must be exported (starting with capital letters)
+	var input struct {
+		Title   string       `json:"title"`
+		Year    int32        `json:"year"`
+		Runtime data.Runtime `json:"runtime"`
+		Genres  []string     `json:"genres"`
+	}
+
+	// No need to close r.Body - Go will handle it automatically
+	err := app.readJSON(w, r, &input) // Non-nil pointer as the target decode destination
+
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	// Copy data to a new Movie struct so as to take advantage of validation function
+	movie := &data.Movie{
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
+	}
+
+	// In a complex system, we might need multiple validation helpers
+	// So we initialize the validator in the handler to create flexibility
+	v := validator.New()
+
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+	}
+
+	fmt.Fprintf(w, "%+v\n", input)
 }
