@@ -1,4 +1,1 @@
-# This is a git repo for my Golang web project Greenlight
-
-## TODOs
-- [ ] Add debug mode
+Golang web project Greenlight, based on the book Let's Go Further by Alex Edwards.

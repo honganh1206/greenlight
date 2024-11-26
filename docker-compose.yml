@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres
+    container_name: greenlight_postgres
+    environment:
+      - POSTGRES_PASSWORD=postgrespw
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/data/postgres
+volumes:
+  pgdata:
