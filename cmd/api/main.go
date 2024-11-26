@@ -7,15 +7,23 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 // TODO: Generate this automatically in build time
 const version = "1.0.0"
 
-// To be read from command-line flags
 type config struct {
 	port int
 	env  string
+	db   struct {
+		dsn          string
+		maxOpenConns int
+		maxIdleConns int
+		maxIdleTime  string
+	}
 }
 
 type application struct {
@@ -24,22 +32,44 @@ type application struct {
 }
 
 func main() {
+	err := godotenv.Load("./.env")
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	dsn := os.Getenv("GREENLIGHT_DB_DSN")
+	// port := os.Getenv("APP_PORT")
+
 	var cfg config
 
 	// Read values from command-line flags to struct
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", dsn, "PostgreSQL DSN")
+	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
+	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
+	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
 	flag.Parse()
 
-	f, fError := os.OpenFile("../tmp/info.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, fError := os.OpenFile("./cmd/tmp/info.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
 	if fError != nil {
 		log.Fatal(fError)
 	}
 
-	f.Close()
+	defer f.Close()
 
 	logger := newLogger(f)
+
+	db, err := openDB(cfg)
+
+	if err != nil {
+		logger.errorLog.Fatal(err)
+	}
+
+	defer db.Close()
+
+	logger.infoLog.Print("database connection pool establised")
 
 	app := &application{
 		config: cfg,
@@ -49,7 +79,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/healthcheck", app.healthCheckHandler)
 
-	// Setup the HTTP server
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port), // String formatting
 		Handler:      http.HandlerFunc(app.serve),
@@ -59,6 +88,6 @@ func main() {
 	}
 
 	logger.infoLog.Printf("Starting %s server on port %s", cfg.env, srv.Addr)
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	logger.errorLog.Fatal(err)
 }

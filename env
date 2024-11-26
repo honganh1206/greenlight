@@ -1,0 +1,2 @@
+GREENLIGHT_DB_DSN="postgres://greenlight:<password>@localhost/greenlight"
+APP_PORT=4000
