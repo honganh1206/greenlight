@@ -4,3 +4,4 @@
 - [[Sending JSON responses]]
 - [[Parsing JSON requests]]
 - [[Database setup and configurations]]
+- [[SQL Migrations]]
