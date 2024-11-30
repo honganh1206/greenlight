@@ -5,3 +5,4 @@
 - [[Parsing JSON requests]]
 - [[Database setup and configurations]]
 - [[SQL Migrations]]
+- [[CRUD Operations]]

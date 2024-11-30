@@ -45,3 +45,35 @@ migrate -path=./migrations -database="<your-dsn>" up
 \du # list all users
 \d <table-name> # see the structure of a table
 ```
+
+- Useful go-migrate commands
+
+```bash
+# Check the migration version
+migrate -path=./migrations -database="<your-dsn>" version
+# Migrate up/down to a specific version
+migrate -path=./migrations -database="<your-dsn>" goto "<version>"
+# Execute down migration by rolling back by a specific number of migrations
+migrate -path=./migrations -database="<your-dsn>" down "<number-of-versions-to-roll-back>"
+```
+
+## Fixing errors in SQL migrations
+
+- Supposed that you made a syntax error in your migration files, and if your files include multiple SQL statements, then it is possible that *the migration files were partially applied before we encounter the error*. This means the database is in an unknown state!
+
+- What to do?
+
+1. Identify the syntax error
+2. If the migration files were partially applied, manually roll-back those files
+3. FORCE the version number in the `schema_migrations` table to the correct value
+
+```bash
+migrate -path=./migrations -database="<your-dsn>" force "<version-number>"
+```
+
+- Bonus: A bad idea to run migrations on application startup:
+
+1. Parallel migrations executed by multiple processes lead to breakage
+2. Coupling schema migrations and code upgrades might lead to downtime
+
+- Possible solution: Decouple schema migrations from code upgrades. Read more in [here](https://pythonspeed.com/articles/schema-migrations-server-startup/)
