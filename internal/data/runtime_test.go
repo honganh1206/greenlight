@@ -2,6 +2,8 @@ package data
 
 import (
 	"testing"
+
+	"greenlight.honganhpham.net/internal/assert"
 )
 
 func TestRuntime_MarshalJSON(t *testing.T) {
@@ -21,10 +23,11 @@ func TestRuntime_MarshalJSON(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			jsonValue, err := test.runtime.MarshalJSON()
 			if err != nil {
-				t.Fatalf("Unexpected error: %v", err)
+				assert.NilError(t, err)
 			}
 			if string(jsonValue) != test.expected {
-				t.Errorf("Expected %s, got %s", test.expected, string(jsonValue))
+				assert.Equal(t, string(jsonValue), test.expected)
+
 			}
 		})
 	}
@@ -74,10 +77,10 @@ func TestRuntime_UnmarshalJSON(t *testing.T) {
 				t.Errorf("Expected error, got nil")
 			} else if !test.expectError {
 				if err != nil {
-					t.Fatalf("Unexpected error: %v", err)
+					assert.NilError(t, err)
 				}
 				if runtime != test.expected {
-					t.Errorf("Expected %d, got %d", test.expected, runtime)
+					assert.Equal(t, runtime, test.expected)
 				}
 			}
 		})

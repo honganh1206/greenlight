@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"greenlight.honganhpham.net/internal/assert"
 )
 
 func TestServe(t *testing.T) {
@@ -49,13 +51,13 @@ func TestServe(t *testing.T) {
 			res := rec.Result()
 			defer res.Body.Close()
 			if res.StatusCode != tc.expectedStatus {
-				t.Errorf("expected status %d, got %d", tc.expectedStatus, res.StatusCode)
+				assert.Equal(t, res.StatusCode, tc.expectedStatus)
 			}
 
 			if tc.expectedStatus == http.StatusMethodNotAllowed {
 				allow := res.Header.Get("Allow")
 				if allow != tc.expectedAllow {
-					t.Errorf("expected Allow header %q, got %q", tc.expectedAllow, allow)
+					assert.Equal(t, allow, tc.expectedAllow)
 				}
 			}
 		})

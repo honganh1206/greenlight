@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"greenlight.honganhpham.net/internal/assert"
 )
 
 func TestCreateMovieHandler(t *testing.T) {
@@ -84,9 +86,8 @@ func TestCreateMovieHandler(t *testing.T) {
 			app.createMovieHandler(rr, req)
 
 			if status := rr.Code; status != tt.expectedStatus {
-				t.Errorf("handler returned wrong status code: got %v want %v",
-					status, tt.expectedStatus)
+				assert.Equal(t, status, tt.expectedStatus)
 			}
-	})
+		})
 	}
 }
