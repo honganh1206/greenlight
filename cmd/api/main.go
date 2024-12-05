@@ -10,6 +10,8 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"greenlight.honganhpham.net/internal/data"
+	"greenlight.honganhpham.net/internal/mocks"
 )
 
 // TODO: Generate this automatically in build time
@@ -27,8 +29,10 @@ type config struct {
 }
 
 type application struct {
-	config config
-	logger *logger
+	config     config
+	logger     *logger
+	models     *data.Models
+	mockModels *mocks.MockModels
 }
 
 func main() {
@@ -74,6 +78,7 @@ func main() {
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 
 	mux := http.NewServeMux()

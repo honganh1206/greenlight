@@ -58,6 +58,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 		var unmarshalTypeError *json.UnmarshalTypeError
 		var invalidUnmarshalError *json.InvalidUnmarshalError
 		var maxBytesError *http.MaxBytesError
+
 		switch {
 		case errors.As(err, &syntaxError):
 			return fmt.Errorf("body contains badly-formed JSON (at character %d)", syntaxError.Offset)

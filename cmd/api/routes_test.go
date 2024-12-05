@@ -29,7 +29,7 @@ func TestServe(t *testing.T) {
 		{
 			name:           "Matching Route with Incorrect Method",
 			method:         "PUT",
-			url:            "/v1/movies",
+			url:            MovieV1,
 			expectedStatus: http.StatusMethodNotAllowed,
 			expectedAllow:  "POST",
 		},
@@ -50,15 +50,12 @@ func TestServe(t *testing.T) {
 
 			res := rec.Result()
 			defer res.Body.Close()
-			if res.StatusCode != tc.expectedStatus {
-				assert.Equal(t, res.StatusCode, tc.expectedStatus)
-			}
+			assert.Equal(t, res.StatusCode, tc.expectedStatus)
 
 			if tc.expectedStatus == http.StatusMethodNotAllowed {
 				allow := res.Header.Get("Allow")
-				if allow != tc.expectedAllow {
-					assert.Equal(t, allow, tc.expectedAllow)
-				}
+				assert.Equal(t, allow, tc.expectedAllow)
+
 			}
 		})
 	}

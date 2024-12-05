@@ -26,9 +26,11 @@ type route struct {
 
 func (app *application) routes() []route {
 	return []route{
-		newRoute(http.MethodGet, "/v1/healthcheck", app.healthCheckHandler),
-		newRoute(http.MethodPost, "/v1/movies", app.createMovieHandler),
-		newRoute(http.MethodGet, "/v1/movies/([0-9]+)", app.showMovieHandler),
+		newRoute(http.MethodGet, HealthCheckV1, app.healthCheckHandler),
+		newRoute(http.MethodPost, MovieV1, app.createMovieHandler),
+		newRoute(http.MethodGet, MovieV1+"/([0-9]+)", app.showMovieHandler),
+		newRoute(http.MethodPut, MovieV1+"/([0-9]+)", app.updateMovieHandler),
+		newRoute(http.MethodDelete, MovieV1+"/([0-9]+)", app.deleteMovieHandler),
 	}
 }
 

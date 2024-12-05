@@ -22,13 +22,8 @@ func TestRuntime_MarshalJSON(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			jsonValue, err := test.runtime.MarshalJSON()
-			if err != nil {
-				assert.NilError(t, err)
-			}
-			if string(jsonValue) != test.expected {
-				assert.Equal(t, string(jsonValue), test.expected)
-
-			}
+			assert.NilError(t, err)
+			assert.Equal(t, string(jsonValue), test.expected)
 		})
 	}
 }
@@ -76,12 +71,8 @@ func TestRuntime_UnmarshalJSON(t *testing.T) {
 			if test.expectError && err == nil {
 				t.Errorf("Expected error, got nil")
 			} else if !test.expectError {
-				if err != nil {
-					assert.NilError(t, err)
-				}
-				if runtime != test.expected {
-					assert.Equal(t, runtime, test.expected)
-				}
+				assert.NilError(t, err)
+				assert.Equal(t, runtime, test.expected)
 			}
 		})
 	}

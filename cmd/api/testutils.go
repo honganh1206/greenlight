@@ -4,6 +4,8 @@ import (
 	"io"
 	"log"
 	"testing"
+
+	"greenlight.honganhpham.net/internal/mocks"
 )
 
 func newTestLogger(_ *testing.T) *logger {
@@ -14,8 +16,8 @@ func newTestLogger(_ *testing.T) *logger {
 }
 
 func newTestApplication(_ *testing.T, tl *logger) *application {
-
 	return &application{
-		logger: tl,
+		logger:     tl,
+		mockModels: mocks.NewMockModels(),
 	}
 }
