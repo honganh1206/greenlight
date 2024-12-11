@@ -6,3 +6,5 @@
 - [[Database setup and configurations]]
 - [[SQL Migrations]]
 - [[CRUD Operations]]
+- [[Testing]]
+- [[Advanced CRUD Operations]]

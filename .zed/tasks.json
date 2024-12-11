@@ -7,6 +7,13 @@
     "shell": "system"
   },
   {
+    "label": "Debug",
+    "command": "go run ./cmd/api -debug",
+    "use_new_terminal": false,
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "shell": "system"
+  },
+  {
     "label": "Test",
     "command": "go test ./...",
     "use_new_terminal": false,

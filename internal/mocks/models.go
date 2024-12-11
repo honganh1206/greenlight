@@ -1,13 +1,11 @@
 package mocks
 
-import "greenlight.honganhpham.net/internal/data"
+import (
+	"greenlight.honganhpham.net/internal/data"
+)
 
-type MockModels struct {
-	Movies data.MovieModelInterface
-}
-
-func NewMockModels() *MockModels {
-	return &MockModels{
+func NewMockModels() *data.Models {
+	return &data.Models{
 		Movies: MockMovieModel{},
 	}
 }

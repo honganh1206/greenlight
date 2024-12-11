@@ -11,7 +11,6 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"greenlight.honganhpham.net/internal/data"
-	"greenlight.honganhpham.net/internal/mocks"
 )
 
 // TODO: Generate this automatically in build time
@@ -29,10 +28,10 @@ type config struct {
 }
 
 type application struct {
-	config     config
-	logger     *logger
-	models     *data.Models
-	mockModels *mocks.MockModels
+	debug  bool
+	config config
+	logger *logger
+	models *data.Models
 }
 
 func main() {
@@ -53,6 +52,7 @@ func main() {
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
+	debug := flag.Bool("debug", false, "Enable debug mode")
 	flag.Parse()
 
 	f, fError := os.OpenFile("./cmd/tmp/info.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -76,17 +76,15 @@ func main() {
 	logger.infoLog.Print("database connection pool establised")
 
 	app := &application{
+		debug:  *debug,
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
 	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/healthcheck", app.healthCheckHandler)
-
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port), // String formatting
-		Handler:      http.HandlerFunc(app.serve),
+		Handler:      http.HandlerFunc(app.ServeHTTP),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second, // TODO: Hardcoded values here
 		WriteTimeout: 30 * time.Second,

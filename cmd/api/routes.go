@@ -29,7 +29,7 @@ func (app *application) routes() []route {
 		newRoute(http.MethodGet, HealthCheckV1, app.healthCheckHandler),
 		newRoute(http.MethodPost, MovieV1, app.createMovieHandler),
 		newRoute(http.MethodGet, MovieV1+"/([0-9]+)", app.showMovieHandler),
-		newRoute(http.MethodPut, MovieV1+"/([0-9]+)", app.updateMovieHandler),
+		newRoute(http.MethodPatch, MovieV1+"/([0-9]+)", app.updateMovieHandler),
 		newRoute(http.MethodDelete, MovieV1+"/([0-9]+)", app.deleteMovieHandler),
 	}
 }
@@ -39,7 +39,8 @@ func newRoute(method, pattern string, handler http.HandlerFunc) route {
 }
 
 // Loop through the loop and call the first one that matches both the HTTP method  and the path
-func (app *application) serve(w http.ResponseWriter, r *http.Request) {
+// Must be ServeHTTP to make application stuct implement http.Handler
+func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var allow []string
 
 	for _, route := range app.routes() {

@@ -108,7 +108,7 @@ func (m MovieModel) Update(movie *Movie) error {
 		movie.ID,
 	}
 
-	return m.DB.QueryRow(query, args).Scan(&movie.Version)
+	return m.DB.QueryRow(query, args...).Scan(&movie.Version)
 
 }
 

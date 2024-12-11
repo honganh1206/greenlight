@@ -8,9 +8,9 @@ import (
 	"greenlight.honganhpham.net/internal/assert"
 )
 
-func TestServe(t *testing.T) {
-	tl := newTestLogger(t)
+func TestServeHTTP(t *testing.T) {
 
+	tl := newTestLogger(t)
 	app := newTestApplication(t, tl)
 
 	tests := []struct {
@@ -46,7 +46,7 @@ func TestServe(t *testing.T) {
 			req := httptest.NewRequest(tc.method, tc.url, nil)
 			rec := httptest.NewRecorder()
 
-			app.serve(rec, req)
+			app.ServeHTTP(rec, req)
 
 			res := rec.Result()
 			defer res.Body.Close()
