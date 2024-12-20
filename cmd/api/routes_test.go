@@ -31,7 +31,7 @@ func TestServeHTTP(t *testing.T) {
 			method:         "PUT",
 			url:            MovieV1,
 			expectedStatus: http.StatusMethodNotAllowed,
-			expectedAllow:  "POST",
+			expectedAllow:  "POST, GET",
 		},
 		{
 			name:           "No Matching Route",

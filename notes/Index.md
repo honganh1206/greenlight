@@ -8,3 +8,4 @@
 - [[CRUD Operations]]
 - [[Testing]]
 - [[Advanced CRUD Operations]]
+- [[Filtering, Sorting, and Pagination]]

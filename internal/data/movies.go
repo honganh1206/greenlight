@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -52,10 +53,16 @@ func (m MovieModel) Insert(movie *Movie) error {
 	RETURNING id, created_at, version
 	`
 
+	// Add a 3-second timeout constraint
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+
+	// Ensure resources associated with our context are released, thus preventing memory leak
+	defer cancel()
+
 	// pq.Array allows decoding Go slices to PostgreSQL array columns
 	args := []any{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
 
-	return m.DB.QueryRow(query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+	return m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
 func (m MovieModel) Get(id int64) (*Movie, error) {
@@ -64,13 +71,27 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 	}
 
 	query := `
-		SELECT id, created_at, title, year, runtime, genres, version
+		SELECT
+		 	id,
+			created_at,
+			title,
+			year,
+			runtime,
+			genres,
+			version
 		FROM movies
 		WHERE id = $1`
 
 	var movie Movie
 
-	err := m.DB.QueryRow(query, id).Scan(
+	// Add a 3-second timeout constraint
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+
+	// Ensure resources associated with our context are released, thus preventing memory leak
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
+		// &[]byte{}, // Scan the pg_sleep(10)
 		&movie.ID,
 		&movie.CreatedAt,
 		&movie.Title,
@@ -109,7 +130,13 @@ func (m MovieModel) Update(movie *Movie) error {
 		movie.Version,
 	}
 
-	err := m.DB.QueryRow(query, args...).Scan(&movie.Version)
+	// Add a 3-second timeout constraint
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+
+	// Ensure resources associated with our context are released, thus preventing memory leak
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.Version)
 
 	if err != nil {
 		switch {
@@ -134,7 +161,13 @@ func (m MovieModel) Delete(id int64) error {
 		WHERE id = $1
 		`
 
-	result, err := m.DB.Exec(query, id)
+	// Add a 3-second timeout constraint
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+
+	// Ensure resources associated with our context are released, thus preventing memory leak
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, id)
 
 	if err != nil {
 		return err

@@ -22,15 +22,14 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 }
 
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-	app.logError(r, err)
-	app.logger.errorLog.Output(2, trace)
-
 	if app.debug {
+		trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
+		app.logger.errorLog.Output(2, trace)
 		app.errorResponse(w, r, http.StatusInternalServerError, trace)
 		return
 	}
 
+	app.logError(r, err)
 	message := "the server encountered a problem and could not process your request"
 	app.errorResponse(w, r, http.StatusInternalServerError, message)
 }

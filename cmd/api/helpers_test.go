@@ -4,12 +4,14 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
 
 	"greenlight.honganhpham.net/internal/assert"
+	"greenlight.honganhpham.net/internal/validator"
 )
 
 func TestReadIDParam(t *testing.T) {
@@ -183,4 +185,166 @@ func TestReadJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReadString(t *testing.T) {
+    tl := newTestLogger(t)
+    app := newTestApplication(t, tl)
+
+    tests := []struct {
+        name         string
+        queryString  string
+        key         string
+        defaultValue string
+        expected    string
+    }{
+        {
+            name:         "Existing Key",
+            queryString:  "name=test",
+            key:         "name",
+            defaultValue: "default",
+            expected:    "test",
+        },
+        {
+            name:         "Missing Key",
+            queryString:  "other=value",
+            key:         "name",
+            defaultValue: "default",
+            expected:    "default",
+        },
+        {
+            name:         "Empty Value",
+            queryString:  "name=",
+            key:         "name",
+            defaultValue: "default",
+            expected:    "default",
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            qs, _ := url.ParseQuery(tt.queryString)
+            result := app.readString(qs, tt.key, tt.defaultValue)
+            assert.Equal(t, result, tt.expected)
+        })
+    }
+}
+
+func TestReadCSV(t *testing.T) {
+    tl := newTestLogger(t)
+    app := newTestApplication(t, tl)
+
+    tests := []struct {
+        name         string
+        queryString  string
+        key         string
+        defaultValue []string
+        expected    []string
+    }{
+        {
+            name:         "Valid CSV",
+            queryString:  "genres=action,adventure,comedy",
+            key:         "genres",
+            defaultValue: []string{"default"},
+            expected:    []string{"action", "adventure", "comedy"},
+        },
+        {
+            name:         "Missing Key",
+            queryString:  "other=value",
+            key:         "genres",
+            defaultValue: []string{"default"},
+            expected:    []string{"default"},
+        },
+        {
+            name:         "Empty Value",
+            queryString:  "genres=",
+            key:         "genres",
+            defaultValue: []string{"default"},
+            expected:    []string{"default"},
+        },
+        {
+            name:         "Single Value",
+            queryString:  "genres=action",
+            key:         "genres",
+            defaultValue: []string{"default"},
+            expected:    []string{"action"},
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            qs, _ := url.ParseQuery(tt.queryString)
+            result := app.readCSV(qs, tt.key, tt.defaultValue)
+            assert.Equal(t, len(result), len(tt.expected))
+            for i := range result {
+                assert.Equal(t, result[i], tt.expected[i])
+            }
+        })
+    }
+}
+
+func TestReadInt(t *testing.T) {
+    tl := newTestLogger(t)
+    app := newTestApplication(t, tl)
+
+    tests := []struct {
+        name         string
+        queryString  string
+        key         string
+        defaultValue int
+        expected    int
+        expectError bool
+    }{
+        {
+            name:         "Valid Integer",
+            queryString:  "page=5",
+            key:         "page",
+            defaultValue: 1,
+            expected:    5,
+            expectError: false,
+        },
+        {
+            name:         "Missing Key",
+            queryString:  "other=value",
+            key:         "page",
+            defaultValue: 1,
+            expected:    1,
+            expectError: false,
+        },
+        {
+            name:         "Invalid Integer",
+            queryString:  "page=abc",
+            key:         "page",
+            defaultValue: 1,
+            expected:    1,
+            expectError: true,
+        },
+        {
+            name:         "Empty Value",
+            queryString:  "page=",
+            key:         "page",
+            defaultValue: 1,
+            expected:    1,
+            expectError: false,
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            qs, _ := url.ParseQuery(tt.queryString)
+            v := validator.New()
+            result := app.readInt(qs, tt.key, tt.defaultValue, v)
+            assert.Equal(t, result, tt.expected)
+
+            if tt.expectError {
+                if len(v.Errors) == 0 {
+                    t.Error("expected validation error but got none")
+                }
+            } else {
+                if len(v.Errors) > 0 {
+                    t.Error("unexpected validation error")
+                }
+            }
+        })
+    }
 }

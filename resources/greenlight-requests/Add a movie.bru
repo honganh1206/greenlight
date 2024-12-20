@@ -1,0 +1,23 @@
+meta {
+  name: Add a movie
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:4000/v1/movies
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "Black Panther",
+    "year": 2018,
+    "runtime": "134 mins",
+    "genres": [
+      "action",
+      "adventure"
+    ]
+  }
+}
