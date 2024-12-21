@@ -7,3 +7,17 @@
 - We need **default values** in case parameters are not provided.
 
 ## Helper functions
+
+- We have different helper functions like `readInt()`, `readCSV()` and `readString()` to extract and convert query parameters into specific types.
+- Embedded struct like `data.Filters` is when we *include a type name without a field name*, so it is automatically treated as a field name.
+
+## Validating query string parameters
+
+Some rules:
+- `page` between 1 and 1,000,000
+- `page_size` between 1 and 100
+- `sort` contains a known and supported value for our movie table like "id" and "-id"
+
+## Listing data
+
+- We need a `GetAll()` method, and we need to add timeout context for that too!
