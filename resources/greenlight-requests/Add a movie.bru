@@ -11,13 +11,35 @@ post {
 }
 
 body:json {
-  {
-    "title": "Black Panther",
-    "year": 2018,
-    "runtime": "134 mins",
-    "genres": [
-      "action",
-      "adventure"
-    ]
-  }
+  {{requestBody}}
+}
+
+script:pre-request {
+  // Define an array of sample movies
+  const movies = [
+      { title: "Inception", year: 2010, runtime: "148 mins", genres: ["sci-fi", "thriller"] },
+      { title: "The Dark Knight", year: 2008, runtime: "152 mins", genres: ["action", "crime"] },
+      { title: "Forrest Gump", year: 1994, runtime: "142 mins", genres: ["drama", "romance"] },
+      { title: "Parasite", year: 2019, runtime: "132 mins", genres: ["thriller", "drama"] },
+      { title: "The Matrix", year: 1999, runtime: "136 mins", genres: ["sci-fi", "action"] },
+      { title: "Gladiator", year: 2000, runtime: "155 mins", genres: ["action", "drama"] }
+  ];
+  
+  // Select a random movie
+  const randomMovie = movies[Math.floor(Math.random() * movies.length)];
+  
+  // Generate a unique ID and version
+  const uniqueId = Math.floor(Math.random() * 1000) + 1; // Random ID between 1 and 1000
+  const version = Math.floor(Math.random() * 10) + 1; // Random version between 1 and 10
+  
+  // Construct the movie object
+  const movieObject = {
+          title: randomMovie.title,
+          year: randomMovie.year,
+          runtime: randomMovie.runtime,
+          genres: randomMovie.genres
+  };
+  
+  req.setBody(movieObject)
+  
 }

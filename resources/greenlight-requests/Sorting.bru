@@ -1,0 +1,15 @@
+meta {
+  name: Sorting
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:4000/v1/movies?sort=-title
+  body: none
+  auth: none
+}
+
+params:query {
+  sort: -title
+}

@@ -42,6 +42,6 @@ func (m MockMovieModel) Delete(id int64) error {
 func (m MockMovieModel) GetAll(
 	title string,
 	genres []string,
-	filters data.Filters) ([]*data.Movie, error) {
-	return nil, nil
+	filters data.Filters) ([]*data.Movie, data.Metadata, error) {
+	return nil, data.Metadata{}, nil
 }
