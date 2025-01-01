@@ -10,6 +10,12 @@ import (
 func TestCreateMovieHandler(t *testing.T) {
 
 	tl := newTestLogger(t)
+
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
+
 	app := newTestApplication(t, tl)
 	ts := newTestServer(t, app)
 
@@ -126,6 +132,12 @@ func TestCreateMovieHandler(t *testing.T) {
 
 func TestShowMovieHandler(t *testing.T) {
 	tl := newTestLogger(t)
+
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
+
 	app := newTestApplication(t, tl)
 	ts := newTestServer(t, app)
 
@@ -178,6 +190,12 @@ func TestShowMovieHandler(t *testing.T) {
 
 func TestUpdateMovieHandler(t *testing.T) {
 	tl := newTestLogger(t)
+
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
+
 	app := newTestApplication(t, tl)
 	ts := newTestServer(t, app)
 
@@ -267,6 +285,12 @@ func TestUpdateMovieHandler(t *testing.T) {
 
 func TestDeleteMovieHandler(t *testing.T) {
 	tl := newTestLogger(t)
+
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
+
 	app := newTestApplication(t, tl)
 
 	ts := newTestServer(t, app)

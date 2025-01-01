@@ -11,6 +11,12 @@ import (
 func TestServeHTTP(t *testing.T) {
 
 	tl := newTestLogger(t)
+
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
+
 	app := newTestApplication(t, tl)
 
 	tests := []struct {

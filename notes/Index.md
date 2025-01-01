@@ -9,3 +9,4 @@
 - [[Testing]]
 - [[Advanced CRUD Operations]]
 - [[Filtering, Sorting, and Pagination]]
+- [[Structured Logging and Error Handling]]

@@ -11,15 +11,17 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"greenlight.honganhpham.net/internal/data"
+	"greenlight.honganhpham.net/internal/logger"
 )
 
 // TODO: Generate this automatically in build time
 const version = "1.0.0"
 
 type config struct {
-	port int
-	env  string
-	db   struct {
+	port      int
+	env       string
+	calldepth int
+	db        struct {
 		dsn          string
 		maxOpenConns int
 		maxIdleConns int
@@ -30,7 +32,7 @@ type config struct {
 type application struct {
 	debug  bool
 	config config
-	logger *logger
+	logger *logger.Logger
 	models *data.Models
 }
 
@@ -52,28 +54,30 @@ func main() {
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
+	flag.IntVar(&cfg.calldepth, "calldepth", 3, "Log level call depth")
 	debug := flag.Bool("debug", false, "Enable debug mode")
 	flag.Parse()
 
-	f, fError := os.OpenFile("./cmd/tmp/info.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	loggerConfig := logger.LoggerConfig{MinLevel: logger.LevelInfo, StackDepth: cfg.calldepth, ShowCaller: true}
+	logger := logger.New(os.Stdout, loggerConfig)
 
-	if fError != nil {
-		log.Fatal(fError)
-	}
+	// f, fError := os.OpenFile("./cmd/tmp/info.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
-	defer f.Close()
+	// if fError != nil {
+	// 	log.Fatal(fError)
+	// }
 
-	logger := newLogger(f)
+	// defer f.Close()
 
 	db, err := openDB(cfg)
 
 	if err != nil {
-		logger.errorLog.Fatal(err)
+		logger.Fatal(err, nil)
 	}
 
 	defer db.Close()
 
-	logger.infoLog.Print("database connection pool establised")
+	logger.Info("database connection pool establised", nil)
 
 	app := &application{
 		debug:  *debug,
@@ -90,7 +94,10 @@ func main() {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	logger.infoLog.Printf("Starting %s server on port %s", cfg.env, srv.Addr)
+	logger.Info("Starting the server", map[string]string{
+		"addr": srv.Addr,
+		"env":  cfg.env,
+	})
 	err = srv.ListenAndServe()
-	logger.errorLog.Fatal(err)
+	logger.Fatal(err, nil)
 }

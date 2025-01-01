@@ -3,29 +3,53 @@ package main
 import (
 	"bytes"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"greenlight.honganhpham.net/internal/assert"
+	"greenlight.honganhpham.net/internal/logger"
 	"greenlight.honganhpham.net/internal/mocks"
 )
+
+type testLogger struct {
+	*logger.Logger
+	Buffer *bytes.Buffer // Capture log output
+}
 
 type testServer struct {
 	*httptest.Server
 }
 
-func newTestLogger(_ *testing.T) *logger {
-	return &logger{
-		errorLog: log.New(io.Discard, "", 0),
-		infoLog:  log.New(io.Discard, "", 0),
+func newTestLogger(_ *testing.T) *testLogger {
+	buffer := &bytes.Buffer{}
+
+	// Configure logger for testing
+	cfg := logger.LoggerConfig{
+		MinLevel:   logger.LevelInfo,
+		StackDepth: 0,     // Disable stack traces for tests
+		ShowCaller: false, // Disable caller info for tests
+	}
+
+	l := logger.New(buffer, cfg)
+
+	return &testLogger{
+		Logger: l,
+		Buffer: buffer,
 	}
 }
 
-func newTestApplication(_ *testing.T, tl *logger) *application {
+func (tl *testLogger) GetLogOutput() string {
+	return tl.Buffer.String()
+}
+
+func (tl *testLogger) Reset() {
+	tl.Buffer.Reset()
+}
+
+func newTestApplication(_ *testing.T, tl *testLogger) *application {
 	return &application{
-		logger: tl,
+		logger: tl.Logger,
 		models: mocks.NewMockModels(),
 	}
 }
@@ -127,8 +151,12 @@ func (ts *testServer) delete(t *testing.T, urlPath string) (int, http.Header, st
 }
 
 func TestHealthCheck(t *testing.T) {
-
 	tl := newTestLogger(t)
+
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
 
 	app := newTestApplication(t, tl)
 
@@ -141,5 +169,4 @@ func TestHealthCheck(t *testing.T) {
 	assert.Equal(t, code, http.StatusOK)
 
 	assert.Equal(t, body, "OK")
-
 }

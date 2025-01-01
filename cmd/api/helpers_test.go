@@ -15,69 +15,80 @@ import (
 )
 
 func TestReadIDParam(t *testing.T) {
-    tl := newTestLogger(t)
-    app := newTestApplication(t, tl)
+	tl := newTestLogger(t)
 
-    tests := []struct {
-        name          string
-        urlPath       string
-        expectedID    int64
-        expectedError bool
-    }{
-        {
-            name:          "Valid ID",
-            urlPath:       MovieV1 + "/123",
-            expectedID:    123,
-            expectedError: false,
-        },
-        {
-            name:          "Invalid ID Format",
-            urlPath:       MovieV1 + "/abc",
-            expectedID:    0,
-            expectedError: true,
-        },
-        {
-            name:          "Negative ID",
-            urlPath:       MovieV1 + "/-1",
-            expectedID:    0,
-            expectedError: true,
-        },
-        {
-            name:          "Zero ID",
-            urlPath:       MovieV1 + "/0",
-            expectedID:    0,
-            expectedError: true,
-        },
-    }
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
 
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            r := httptest.NewRequest(http.MethodGet, tt.urlPath, nil)
+	app := newTestApplication(t, tl)
 
-            // Extract the ID from the URL path
-            matches := regexp.MustCompile(`/([0-9a-zA-Z-]+)$`).FindStringSubmatch(tt.urlPath)
-            if len(matches) > 1 {
-                // Create a new context with the ID parameter
-                ctx := context.WithValue(r.Context(), ctxKey{}, []string{matches[1]})
-                r = r.WithContext(ctx)
-            }
+	tests := []struct {
+		name          string
+		urlPath       string
+		expectedID    int64
+		expectedError bool
+	}{
+		{
+			name:          "Valid ID",
+			urlPath:       MovieV1 + "/123",
+			expectedID:    123,
+			expectedError: false,
+		},
+		{
+			name:          "Invalid ID Format",
+			urlPath:       MovieV1 + "/abc",
+			expectedID:    0,
+			expectedError: true,
+		},
+		{
+			name:          "Negative ID",
+			urlPath:       MovieV1 + "/-1",
+			expectedID:    0,
+			expectedError: true,
+		},
+		{
+			name:          "Zero ID",
+			urlPath:       MovieV1 + "/0",
+			expectedID:    0,
+			expectedError: true,
+		},
+	}
 
-            id, err := app.readIDParam(r)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodGet, tt.urlPath, nil)
 
-            if tt.expectedError {
-                if err == nil {
-                    t.Errorf("expected an error but got none")
-                }
-            } else {
-                assert.NilError(t, err)
-                assert.Equal(t, id, tt.expectedID)
-            }
-        })
-    }
+			// Extract the ID from the URL path
+			matches := regexp.MustCompile(`/([0-9a-zA-Z-]+)$`).FindStringSubmatch(tt.urlPath)
+			if len(matches) > 1 {
+				// Create a new context with the ID parameter
+				ctx := context.WithValue(r.Context(), ctxKey{}, []string{matches[1]})
+				r = r.WithContext(ctx)
+			}
+
+			id, err := app.readIDParam(r)
+
+			if tt.expectedError {
+				if err == nil {
+					t.Errorf("expected an error but got none")
+				}
+			} else {
+				assert.NilError(t, err)
+				assert.Equal(t, id, tt.expectedID)
+			}
+		})
+	}
 }
 
 func TestWriteJSON(t *testing.T) {
 	tl := newTestLogger(t)
+
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
 
 	app := newTestApplication(t, tl)
 
@@ -126,6 +137,11 @@ func TestWriteJSON(t *testing.T) {
 
 func TestReadJSON(t *testing.T) {
 	tl := newTestLogger(t)
+
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
 
 	app := newTestApplication(t, tl)
 
@@ -188,163 +204,181 @@ func TestReadJSON(t *testing.T) {
 }
 
 func TestReadString(t *testing.T) {
-    tl := newTestLogger(t)
-    app := newTestApplication(t, tl)
+	tl := newTestLogger(t)
 
-    tests := []struct {
-        name         string
-        queryString  string
-        key         string
-        defaultValue string
-        expected    string
-    }{
-        {
-            name:         "Existing Key",
-            queryString:  "name=test",
-            key:         "name",
-            defaultValue: "default",
-            expected:    "test",
-        },
-        {
-            name:         "Missing Key",
-            queryString:  "other=value",
-            key:         "name",
-            defaultValue: "default",
-            expected:    "default",
-        },
-        {
-            name:         "Empty Value",
-            queryString:  "name=",
-            key:         "name",
-            defaultValue: "default",
-            expected:    "default",
-        },
-    }
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
 
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            qs, _ := url.ParseQuery(tt.queryString)
-            result := app.readString(qs, tt.key, tt.defaultValue)
-            assert.Equal(t, result, tt.expected)
-        })
-    }
+	app := newTestApplication(t, tl)
+
+	tests := []struct {
+		name         string
+		queryString  string
+		key          string
+		defaultValue string
+		expected     string
+	}{
+		{
+			name:         "Existing Key",
+			queryString:  "name=test",
+			key:          "name",
+			defaultValue: "default",
+			expected:     "test",
+		},
+		{
+			name:         "Missing Key",
+			queryString:  "other=value",
+			key:          "name",
+			defaultValue: "default",
+			expected:     "default",
+		},
+		{
+			name:         "Empty Value",
+			queryString:  "name=",
+			key:          "name",
+			defaultValue: "default",
+			expected:     "default",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			qs, _ := url.ParseQuery(tt.queryString)
+			result := app.readString(qs, tt.key, tt.defaultValue)
+			assert.Equal(t, result, tt.expected)
+		})
+	}
 }
 
 func TestReadCSV(t *testing.T) {
-    tl := newTestLogger(t)
-    app := newTestApplication(t, tl)
+	tl := newTestLogger(t)
 
-    tests := []struct {
-        name         string
-        queryString  string
-        key         string
-        defaultValue []string
-        expected    []string
-    }{
-        {
-            name:         "Valid CSV",
-            queryString:  "genres=action,adventure,comedy",
-            key:         "genres",
-            defaultValue: []string{"default"},
-            expected:    []string{"action", "adventure", "comedy"},
-        },
-        {
-            name:         "Missing Key",
-            queryString:  "other=value",
-            key:         "genres",
-            defaultValue: []string{"default"},
-            expected:    []string{"default"},
-        },
-        {
-            name:         "Empty Value",
-            queryString:  "genres=",
-            key:         "genres",
-            defaultValue: []string{"default"},
-            expected:    []string{"default"},
-        },
-        {
-            name:         "Single Value",
-            queryString:  "genres=action",
-            key:         "genres",
-            defaultValue: []string{"default"},
-            expected:    []string{"action"},
-        },
-    }
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
 
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            qs, _ := url.ParseQuery(tt.queryString)
-            result := app.readCSV(qs, tt.key, tt.defaultValue)
-            assert.Equal(t, len(result), len(tt.expected))
-            for i := range result {
-                assert.Equal(t, result[i], tt.expected[i])
-            }
-        })
-    }
+	app := newTestApplication(t, tl)
+
+	tests := []struct {
+		name         string
+		queryString  string
+		key          string
+		defaultValue []string
+		expected     []string
+	}{
+		{
+			name:         "Valid CSV",
+			queryString:  "genres=action,adventure,comedy",
+			key:          "genres",
+			defaultValue: []string{"default"},
+			expected:     []string{"action", "adventure", "comedy"},
+		},
+		{
+			name:         "Missing Key",
+			queryString:  "other=value",
+			key:          "genres",
+			defaultValue: []string{"default"},
+			expected:     []string{"default"},
+		},
+		{
+			name:         "Empty Value",
+			queryString:  "genres=",
+			key:          "genres",
+			defaultValue: []string{"default"},
+			expected:     []string{"default"},
+		},
+		{
+			name:         "Single Value",
+			queryString:  "genres=action",
+			key:          "genres",
+			defaultValue: []string{"default"},
+			expected:     []string{"action"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			qs, _ := url.ParseQuery(tt.queryString)
+			result := app.readCSV(qs, tt.key, tt.defaultValue)
+			assert.Equal(t, len(result), len(tt.expected))
+			for i := range result {
+				assert.Equal(t, result[i], tt.expected[i])
+			}
+		})
+	}
 }
 
 func TestReadInt(t *testing.T) {
-    tl := newTestLogger(t)
-    app := newTestApplication(t, tl)
+	tl := newTestLogger(t)
 
-    tests := []struct {
-        name         string
-        queryString  string
-        key         string
-        defaultValue int
-        expected    int
-        expectError bool
-    }{
-        {
-            name:         "Valid Integer",
-            queryString:  "page=5",
-            key:         "page",
-            defaultValue: 1,
-            expected:    5,
-            expectError: false,
-        },
-        {
-            name:         "Missing Key",
-            queryString:  "other=value",
-            key:         "page",
-            defaultValue: 1,
-            expected:    1,
-            expectError: false,
-        },
-        {
-            name:         "Invalid Integer",
-            queryString:  "page=abc",
-            key:         "page",
-            defaultValue: 1,
-            expected:    1,
-            expectError: true,
-        },
-        {
-            name:         "Empty Value",
-            queryString:  "page=",
-            key:         "page",
-            defaultValue: 1,
-            expected:    1,
-            expectError: false,
-        },
-    }
+	// Reset the buffer for next test
+	t.Cleanup(func() {
+		tl.Reset()
+	})
 
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            qs, _ := url.ParseQuery(tt.queryString)
-            v := validator.New()
-            result := app.readInt(qs, tt.key, tt.defaultValue, v)
-            assert.Equal(t, result, tt.expected)
+	app := newTestApplication(t, tl)
 
-            if tt.expectError {
-                if len(v.Errors) == 0 {
-                    t.Error("expected validation error but got none")
-                }
-            } else {
-                if len(v.Errors) > 0 {
-                    t.Error("unexpected validation error")
-                }
-            }
-        })
-    }
+	tests := []struct {
+		name         string
+		queryString  string
+		key          string
+		defaultValue int
+		expected     int
+		expectError  bool
+	}{
+		{
+			name:         "Valid Integer",
+			queryString:  "page=5",
+			key:          "page",
+			defaultValue: 1,
+			expected:     5,
+			expectError:  false,
+		},
+		{
+			name:         "Missing Key",
+			queryString:  "other=value",
+			key:          "page",
+			defaultValue: 1,
+			expected:     1,
+			expectError:  false,
+		},
+		{
+			name:         "Invalid Integer",
+			queryString:  "page=abc",
+			key:          "page",
+			defaultValue: 1,
+			expected:     1,
+			expectError:  true,
+		},
+		{
+			name:         "Empty Value",
+			queryString:  "page=",
+			key:          "page",
+			defaultValue: 1,
+			expected:     1,
+			expectError:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			qs, _ := url.ParseQuery(tt.queryString)
+			v := validator.New()
+			result := app.readInt(qs, tt.key, tt.defaultValue, v)
+			assert.Equal(t, result, tt.expected)
+
+			if tt.expectError {
+				if len(v.Errors) == 0 {
+					t.Error("expected validation error but got none")
+				}
+			} else {
+				if len(v.Errors) > 0 {
+					t.Error("unexpected validation error")
+				}
+			}
+		})
+	}
 }

@@ -7,13 +7,14 @@ import (
 )
 
 func (app *application) logError(_ *http.Request, err error) {
-	app.logger.errorLog.Print(err)
+	app.logger.Error(err, nil)
 }
 
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
 	env := envelope{"error": message}
 
 	err := app.writeJSON(w, status, env, nil)
+	// FIXME: log error to print stack trace here in debug
 
 	if err != nil {
 		app.logError(r, err)
@@ -24,7 +25,6 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	if app.debug {
 		trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-		app.logger.errorLog.Output(2, trace)
 		app.errorResponse(w, r, http.StatusInternalServerError, trace)
 		return
 	}
@@ -35,6 +35,7 @@ func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request) {
+	// FIXME: No ERROR level log, just INFO and FATAL
 	message := "the requested resource could not be found"
 	app.errorResponse(w, r, http.StatusNotFound, message)
 }
