@@ -19,3 +19,8 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 		app.serverErrorResponse(w, r, err)
 	}
 }
+
+// For testing only
+func (app *application) panicHandler(w http.ResponseWriter, r *http.Request) {
+	panic("simulated panic!")
+}

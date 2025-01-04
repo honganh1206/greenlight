@@ -1,5 +1,4 @@
 // Custom Go HTTP router based on a table of regexes
-
 package main
 
 import (
@@ -32,6 +31,7 @@ func (app *application) routes() []route {
 		newRoute(http.MethodGet, MovieV1+"/([0-9]+)", app.showMovieHandler),
 		newRoute(http.MethodPatch, MovieV1+"/([0-9]+)", app.updateMovieHandler),
 		newRoute(http.MethodDelete, MovieV1+"/([0-9]+)", app.deleteMovieHandler),
+		newRoute(http.MethodGet, "/panic", app.panicHandler),
 	}
 }
 

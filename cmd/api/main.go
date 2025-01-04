@@ -88,10 +88,11 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port), // String formatting
-		Handler:      http.HandlerFunc(app.ServeHTTP),
+		Handler:      app.recoverPanic(http.HandlerFunc(app.ServeHTTP)),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second, // TODO: Hardcoded values here
 		WriteTimeout: 30 * time.Second,
+		ErrorLog:     log.New(logger, "", 0),
 	}
 
 	logger.Info("Starting the server", map[string]string{

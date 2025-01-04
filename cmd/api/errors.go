@@ -6,15 +6,17 @@ import (
 	"runtime/debug"
 )
 
-func (app *application) logError(_ *http.Request, err error) {
-	app.logger.Error(err, nil)
+func (app *application) logError(r *http.Request, err error) {
+	app.logger.Error(err, map[string]string{
+		"request_method": r.Method,
+		"request_url":    r.URL.String(),
+	})
 }
 
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
 	env := envelope{"error": message}
 
 	err := app.writeJSON(w, status, env, nil)
-	// FIXME: log error to print stack trace here in debug
 
 	if err != nil {
 		app.logError(r, err)
@@ -22,10 +24,15 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 	}
 }
 
+func (app *application) debugErrorResponse(w http.ResponseWriter, r *http.Request, status int, err error) {
+	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
+	app.logError(r, err)
+	app.errorResponse(w, r, status, trace)
+}
+
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	if app.debug {
-		trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-		app.errorResponse(w, r, http.StatusInternalServerError, trace)
+		app.debugErrorResponse(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -35,7 +42,6 @@ func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request) {
-	// FIXME: No ERROR level log, just INFO and FATAL
 	message := "the requested resource could not be found"
 	app.errorResponse(w, r, http.StatusNotFound, message)
 }
@@ -46,6 +52,10 @@ func (app *application) methodNotAllowedResponse(w http.ResponseWriter, r *http.
 }
 
 func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	if app.debug {
+		app.debugErrorResponse(w, r, http.StatusInternalServerError, err)
+		return
+	}
 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
 }
 

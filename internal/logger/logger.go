@@ -5,41 +5,18 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"runtime"
 	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
+
+	"greenlight.honganhpham.net/internal/helpers"
 )
 
 type Level int8
 
 const CALL_DEPTH = 3
-
-const MAX_BUFFER_SIZE = 64 << 10
-
-// Cache and reuse byte slices to reduce memory allocations
-var bufferPool = sync.Pool{New: func() any { return new([]byte) }}
-
-func getBuffer() *[]byte {
-	p := bufferPool.Get().(*[]byte)
-
-	// Reset the buffer while preserving capacity
-	*p = (*p)[:0]
-	return p
-}
-
-// Place the buffer back into the pool
-func putBuffer(p *[]byte) {
-	// Set a hard-coded limit for buffers returning to the pool
-	// If buffer size exceeds the limit, we let the garbage collector reclaim the memory
-	if cap(*p) > MAX_BUFFER_SIZE {
-		*p = nil
-	}
-
-	bufferPool.Put(p)
-}
 
 const (
 	LevelInfo Level = iota
@@ -53,7 +30,7 @@ const (
 type Logger struct {
 	out    io.Writer
 	config LoggerConfig
-	mu     sync.Mutex // coordinate the writes
+	mu     sync.Mutex // coordinate the writes so log entries dont get mixed up
 }
 
 type LoggerConfig struct {
@@ -66,33 +43,6 @@ func New(out io.Writer, cfg LoggerConfig) *Logger {
 	return &Logger{
 		out:    out,
 		config: cfg,
-	}
-}
-
-type CallerInfo struct {
-	File     string `json:"file,omitempty"`
-	Function string `json:"function,omitempty"`
-	Line     int    `json:"line,omitempty"`
-}
-
-func getCaller(calldepth int) *CallerInfo {
-	// Return the memory address pointing to the function code located in memory
-	pc, file, line, ok := runtime.Caller(calldepth)
-
-	if !ok {
-		return nil
-	}
-
-	fn := runtime.FuncForPC(pc)
-
-	if fn == nil {
-		return nil
-	}
-
-	return &CallerInfo{
-		File:     filepath.Base(file),
-		Function: filepath.Base(fn.Name()),
-		Line:     line,
 	}
 }
 
@@ -110,7 +60,8 @@ func (l Level) String() string {
 	}
 }
 
-func (l *Logger) Output(msg []byte) (n int, err error) {
+// Have to be Write to satisfy the io.Writer interface
+func (l *Logger) Write(msg []byte) (n int, err error) {
 	return l.output(LevelError, string(msg), nil)
 }
 
@@ -127,14 +78,15 @@ func (l *Logger) Fatal(err error, props map[string]string) {
 	os.Exit(1) // Terminate the app
 }
 
+// TODO: Rewrite this without nested struct and prioritize early returns
 func (l *Logger) output(level Level, msg string, props map[string]string) (int, error) {
 	// No need to display level below error
 	if level < l.config.MinLevel {
 		return 0, nil
 	}
 
-	buf := getBuffer()
-	defer putBuffer(buf)
+	buf := helpers.GetBuffer()
+	defer helpers.PutBuffer(buf)
 
 	aux := struct {
 		Level      string            `json:"level"`
@@ -143,7 +95,7 @@ func (l *Logger) output(level Level, msg string, props map[string]string) (int, 
 		Properties map[string]string `json:"properties"`
 		Trace      string            `json:"trace,omitempty"`
 		// Pointer type is optional here, but it would be useful when caller info is not available or there is an error
-		Caller *CallerInfo `json:"caller,omitempty"`
+		Caller *helpers.CallerInfo `json:"caller,omitempty"`
 	}{
 		Level:      level.String(),
 		Time:       time.Now().UTC().Format(time.RFC3339),
@@ -153,7 +105,7 @@ func (l *Logger) output(level Level, msg string, props map[string]string) (int, 
 	// Immediate caller info - Where the log was called from
 	if l.config.ShowCaller {
 		// Skip runtime.Caller + print + PrintInfo/PrintError
-		aux.Caller = getCaller(CALL_DEPTH)
+		aux.Caller = helpers.GetCaller(CALL_DEPTH)
 	}
 
 	// Detailed stack trace
@@ -167,27 +119,45 @@ func (l *Logger) output(level Level, msg string, props map[string]string) (int, 
 				frames := runtime.CallersFrames(stack[:length])
 
 				var trace strings.Builder
-
+				frameCount := 1
+				trace.WriteString("\n") // Start with a newline
 				for {
 					frame, more := frames.Next()
-					fmt.Fprintf(&trace, "%s\n\t%s:%d\n", frame.Function, frame.File, frame.Line)
+
+					// Clean up file path
+					file := helpers.CleanPath(frame.File)
+
+					// FIXME: No need for pretty JSON, but at least get rid of the \n character
+					// Might put this as a struct
+					fmt.Fprintf(&trace, "    Frame %d:\n", frameCount)
+					fmt.Fprintf(&trace, "        Function: %s\n", frame.Function)
+					fmt.Fprintf(&trace, "        File:     %s\n", file)
+					fmt.Fprintf(&trace, "        Line:     %d\n", frame.Line)
+
+					if more {
+						trace.WriteString("\n") // Spacing between frames
+					}
+
+					frameCount++
+
 					if !more {
 						break
 					}
 				}
 
-				aux.Trace = trace.String()
+				aux.Trace = helpers.FormatDebugStack(trace.String())
 			}
 
 		} else {
 			// If no depth is specified
-			aux.Trace = string(debug.Stack())
+			// Format the stack output
+			stackTrace := string(debug.Stack())
+			aux.Trace = helpers.FormatDebugStack(stackTrace)
 		}
 	}
 
 	jsonData, err := json.Marshal(aux)
 
-	// TODO: Prettify? the jsonData
 	*buf = append(*buf, jsonData...)
 	*buf = append(*buf, '\n') // Ensure newline
 
