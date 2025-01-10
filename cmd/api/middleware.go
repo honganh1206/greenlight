@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+
+	"greenlight.honganhpham.net/internal/rate"
 )
 
-func (app *application) recoverPanic(next http.Handler) http.Handler {
-	// Returns a new http.Handler that wraps the anonymous function
-	// http.HandlerFunc converts a function to a Handler
+func (app *application) recoverPanic(next http.Handler) http.Handler { // Returns a new http.Handler that wraps the anonymous function // http.HandlerFunc converts a function to a Handler
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// This will run in the event of a panic as Go unwinds the goroutine stack
 		defer func() {
@@ -35,6 +35,20 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 				app.serverErrorResponse(w, r, fmt.Errorf("%s", err))
 			}
 		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) rateLimit(next http.Handler) http.Handler {
+	cfg := rate.RateLimiterConfig{RequestsPerSecond: 2, BurstSize: 4, QueueSize: 3}
+	limiter := rate.New(cfg)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !limiter.Allow() {
+			app.rateLimitExceedResponse(w, r)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

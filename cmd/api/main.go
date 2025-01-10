@@ -88,7 +88,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port), // String formatting
-		Handler:      app.recoverPanic(http.HandlerFunc(app.ServeHTTP)),
+		Handler:      app.recoverPanic(app.rateLimit(http.HandlerFunc(app.ServeHTTP))),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second, // TODO: Hardcoded values here
 		WriteTimeout: 30 * time.Second,
