@@ -3,22 +3,23 @@ package rate
 import "time"
 
 // Handle basic and bursty rate limiting
-type RateLimiter struct {
+type Limiter struct {
 	requests      chan int
 	limiter       <-chan time.Time // (Receive-only channel) Process 1 request each time
 	burstyLimiter chan time.Time   // For short bursts of requests while preserving the overall rate limit
 }
 
-type RateLimiterConfig struct {
+type LimiterConfig struct {
 	RequestsPerSecond int
 	BurstSize         int
 	QueueSize         int
+	Enabled           bool
 }
 
-func New(cfg RateLimiterConfig) *RateLimiter {
+func New(cfg LimiterConfig) *Limiter {
 	interval := time.Second / time.Duration(cfg.RequestsPerSecond)
 
-	rl := &RateLimiter{
+	rl := &Limiter{
 		requests:      make(chan int, cfg.QueueSize),
 		limiter:       time.Tick(interval),
 		burstyLimiter: make(chan time.Time, cfg.BurstSize),
@@ -39,7 +40,7 @@ func New(cfg RateLimiterConfig) *RateLimiter {
 	return rl
 }
 
-func (rl *RateLimiter) Allow() bool {
+func (rl *Limiter) Allow() bool {
 	// Avoid blocking by return immediately when a token is available
 	select {
 	case <-rl.burstyLimiter:

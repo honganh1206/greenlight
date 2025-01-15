@@ -2,16 +2,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"greenlight.honganhpham.net/internal/data"
 	"greenlight.honganhpham.net/internal/logger"
+	"greenlight.honganhpham.net/internal/rate"
 )
 
 // TODO: Generate this automatically in build time
@@ -27,6 +25,7 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime  string
 	}
+	limiter rate.LimiterConfig
 }
 
 type application struct {
@@ -55,6 +54,11 @@ func main() {
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
 	flag.IntVar(&cfg.calldepth, "calldepth", 3, "Log level call depth")
+	flag.IntVar(&cfg.limiter.RequestsPerSecond, "limiter-rps", 2, "Rate limiter maximum requests per second")
+	flag.IntVar(&cfg.limiter.BurstSize, "limiter-burst", 4, "Rate limiter maximum burst size")
+	flag.IntVar(&cfg.limiter.QueueSize, "limiter-queue", 3, "Rate limiter maximum queue size")
+	flag.BoolVar(&cfg.limiter.Enabled, "limiter-enabled", true, "Enable rate limiter")
+
 	debug := flag.Bool("debug", false, "Enable debug mode")
 	flag.Parse()
 
@@ -86,19 +90,9 @@ func main() {
 		models: data.NewModels(db),
 	}
 
-	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.port), // String formatting
-		Handler:      app.recoverPanic(app.rateLimit(http.HandlerFunc(app.ServeHTTP))),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  10 * time.Second, // TODO: Hardcoded values here
-		WriteTimeout: 30 * time.Second,
-		ErrorLog:     log.New(logger, "", 0),
-	}
+	err = app.serve()
 
-	logger.Info("Starting the server", map[string]string{
-		"addr": srv.Addr,
-		"env":  cfg.env,
-	})
-	err = srv.ListenAndServe()
-	logger.Fatal(err, nil)
+	if err != nil {
+		logger.Fatal(err, nil)
+	}
 }
