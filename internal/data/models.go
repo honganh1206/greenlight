@@ -12,11 +12,13 @@ var (
 
 type Models struct {
 	Movies MovieModelInterface
+	Users  UserModelInterface
 }
 
 func NewModels(db *sql.DB) *Models {
 	// Return pointer type to ensure we are working with the same instance
 	return &Models{
 		Movies: MovieModel{DB: db},
+		Users:  UserModel{DB: db},
 	}
 }

@@ -1,3 +1,9 @@
+---
+id: Rate Limiting
+aliases: []
+tags: []
+---
+
 # Rate Limiting
 
 We implement rate limiting to _prevent clients from making too many requests_ by creating a middleware.
@@ -30,7 +36,7 @@ If the bucket is empty and we receive a HTTP request, we should return a `429` s
 
 It is better to **separate rate limiter for each client** so that one bad client making too many requests will not impact all the others.
 
-One way to do so is to create an **in-memory** map of rate limiters with IP addresses as keys. Each time a new client makes a request, we _initialize a new rate limiter and add it to the map_
+- [ ] One way to do so is to create an **in-memory** map of rate limiters with IP addresses as keys. Each time a new client makes a request, we _initialize a new rate limiter and add it to the map_
 
 As we will have _multiple goroutines accessing the map concurrently_, we will also need to use `sync.Mutex` to protect access to the map
 

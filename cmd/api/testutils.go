@@ -80,7 +80,7 @@ func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, strin
 	return rs.StatusCode, rs.Header, string(body)
 }
 
-func (ts *testServer) post(t *testing.T, urlPath string, body []byte) (int, http.Header, string) {
+func (ts *testServer) post(t *testing.T, urlPath string, body []byte) (int, http.Header, []byte) {
 	rs, err := ts.Client().Post(ts.URL+urlPath, "application/json", bytes.NewReader(body))
 
 	if err != nil {
@@ -97,7 +97,7 @@ func (ts *testServer) post(t *testing.T, urlPath string, body []byte) (int, http
 
 	bytes.TrimSpace(respBody)
 
-	return rs.StatusCode, rs.Header, string(respBody)
+	return rs.StatusCode, rs.Header, respBody
 }
 
 func (ts *testServer) update(t *testing.T, urlPath string, body []byte) (int, http.Header, string) {

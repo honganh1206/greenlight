@@ -37,7 +37,6 @@ type application struct {
 
 func main() {
 	err := godotenv.Load("./.env")
-
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -74,7 +73,6 @@ func main() {
 	// defer f.Close()
 
 	db, err := openDB(cfg)
-
 	if err != nil {
 		logger.Fatal(err, nil)
 	}
@@ -91,7 +89,6 @@ func main() {
 	}
 
 	err = app.serve()
-
 	if err != nil {
 		logger.Fatal(err, nil)
 	}

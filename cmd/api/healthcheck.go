@@ -13,6 +13,10 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 		"environment": app.config.env,
 		"version":     version,
 	}
+
+	// Delay for testing
+	// time.Sleep(4 * time.Second)
+
 	err := app.writeJSON(w, http.StatusOK, env, nil)
 
 	if err != nil {

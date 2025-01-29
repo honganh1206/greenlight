@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"greenlight.honganhpham.net/internal/validator"
 )
@@ -132,4 +133,31 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 
 	return i
 
+}
+
+// Ensure consistent processing time for sensitive operations
+func (app *application) consistentTimeHandler(operation func() error, minDuration time.Duration) error {
+
+	startTime := time.Now()
+
+	done := make(chan error, 1)
+
+	go func() {
+		done <- operation()
+	}()
+
+	// Wait for one of multiple channel operations to complete
+	select {
+	// Case 1: Operation completes and sends result to done channel
+	case err := <-done:
+		elapsed := time.Since(startTime)
+		// Wait for the remaining time
+		if elapsed < minDuration {
+			time.Sleep(minDuration - elapsed)
+		}
+		return err
+	// Case 2: Operation takes too long (timeout)
+	case <-time.After(minDuration * 2):
+		return errors.New("operation timed out")
+	}
 }

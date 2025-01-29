@@ -2,11 +2,12 @@
 
 ## Overview
 
-- When updating our database schema, a migration generates a pair of migration files: One is *up* migration with SQL statements to implement the changes, the other is the *down* migration with SQL statements to reverse/roll-back the changes.
-- Each migration pair will be numbered *sequentially* like 001, 002, ... or with Unix timestamp.
+- When updating our database schema, a migration generates a pair of migration files: One is _up_ migration with SQL statements to implement the changes, the other is the _down_ migration with SQL statements to reverse/roll-back the changes.
+- Each migration pair will be numbered _sequentially_ like 001, 002, ... or with Unix timestamp.
 - We will use tools/scripts to execute or rollback SQL statements in the migration files.
 
 ## Setup go-migrate
+
 - Follow the [online guide](https://github.com/golang-migrate/migrate/blob/master/cmd/migrate/README.md). Note that if you set go in `/usr/local/go/..` then you should move the pre-built binary to `user/local/go..`
 
 ## Working with SQL migrations
@@ -18,8 +19,10 @@
 # a descriptive label
 migrate create -seq -ext=.sql -dir=./migrations create_movies_table
 ```
+
 - Note that working with `NULL` values in Go can be rather awkward, so it is a good practice to set the `NOT NULL` constraints on every table column.
 - [This article](https://www.depesz.com/2010/03/02/charx-vs-varcharx-vs-varchar-vs-text/) puts forward some good reasons why we should use `text` instead of `varchar` in certain cases. Some of the reasons might be:
+
 1. Flexibility without length constraints
 2. Ease of schema change
 3. Simplified usage
@@ -59,7 +62,7 @@ migrate -path=./migrations -database="<your-dsn>" down "<number-of-versions-to-r
 
 ## Fixing errors in SQL migrations
 
-- Supposed that you made a syntax error in your migration files, and if your files include multiple SQL statements, then it is possible that *the migration files were partially applied before we encounter the error*. This means the database is in an unknown state!
+- Supposed that you made a syntax error in your migration files, and if your files include multiple SQL statements, then it is possible that _the migration files were partially applied before we encounter the error_. This means the database is in an unknown state!
 
 - What to do?
 

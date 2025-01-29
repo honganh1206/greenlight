@@ -33,3 +33,5 @@ Why? Because a signal could be 'missed' if our `quit` channel is **NOT READY** t
 ## What is considered a graceful shutdown?
 
 A graceful shutdown _shuts down the server without interrupting any active connections_. We first close all open listeners -> close all idle connections -> wait for connections to become idle for shut down
+
+What we do: We _instruct our server to stop accepting new HTTP requests_ and _given in-flight request a grace period of 20 seconds to complete_

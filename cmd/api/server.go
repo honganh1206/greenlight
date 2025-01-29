@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,6 +24,8 @@ func (app *application) serve() error {
 
 	shutdownError := make(chan error)
 
+	// Stop accepting new HTTP requests
+	// Give in-flight ones 20 seconds to complete
 	go func() {
 		// Intercepting the signals
 		quit := make(chan os.Signal, 1)
@@ -33,15 +37,38 @@ func (app *application) serve() error {
 		app.logger.Info("shutting down server...", map[string]string{
 			"signal": s.String(),
 		})
-		// Graceful shutdown here!
-		os.Exit(0)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		// Graceful shutdown starts here!
+		// Shutdown() will return nil if the graceful shutdown is successful
+		// Error if not
+		// Whatever the return is, we relay it
+		shutdownError <- srv.Shutdown(ctx)
 
 	}()
 
-	app.logger.Info("Starting the server", map[string]string{
+	app.logger.Info("starting the server", map[string]string{
 		"addr": srv.Addr,
 		"env":  app.config.env,
 	})
 
-	return srv.ListenAndServe()
+	// Calling SHutdown() successfully means ListenAndServe() will IMMEDIATELY return an error
+	// It is actually a good thing: That means the graceful shutdown has started!
+	err := srv.ListenAndServe()
+
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	// If there is an error from the shutdownError channel, it means the graceful shutdown has some errors
+	err = <-shutdownError
+	if err != nil {
+		return err
+	}
+	app.logger.Info("stopped the server", map[string]string{
+		"addr": srv.Addr,
+	})
+
+	return nil
 }

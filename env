@@ -1,2 +1,7 @@
 GREENLIGHT_DB_DSN="postgres://greenlight:<password>@localhost/greenlight"
 APP_PORT=4000
+MAILTRAP_SMTP_HOST="smtp.Mailtrap.io"
+MAILTRAP_SMTP_PORT=25
+MAILTRAP_SMTP_USERNAME="username"
+MAILTRAP_SMTP_PASSWORD="password"
+MAILTRAP_SMTP_SENDER="Greenlight <no-reply@greenlight.honganhpham.net>"
