@@ -17,3 +17,7 @@ The `mime.WordEncoder` encodes the body of the email according to MIME standards
 | Base64                                                                      | Quoted-printable                  |
 | --------------------------------------------------------------------------- | --------------------------------- |
 | Encode binary data (e.g., attachments, images) or non-ASCII text in headers | Encode ASCII-compatible text data |
+
+## MIME boundaries
+
+Used to separate different part of a multipart email message (like when an email has both text and attachment)

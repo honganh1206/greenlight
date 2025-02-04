@@ -18,7 +18,6 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	var input registration
 
 	err := app.readJSON(w, r, &input)
-
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -36,7 +35,6 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 
 		err = user.Password.Set(input.Password)
-
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return err
@@ -51,9 +49,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		// time.Sleep(4 *time.Second)
 
 		return app.models.Users.Insert(user)
-
 	}, minProcessingTime)
-
 	if err != nil {
 		switch {
 		// FIXME: Change response message to send email even if duplicate
@@ -73,5 +69,4 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-
 }

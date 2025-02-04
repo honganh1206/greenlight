@@ -11,3 +11,5 @@ Our user welcome email template (as a `.tmpl` file)will have 3 parts:
 [Revisiting tmpl file](Revisiting%20tmpl%20file.md)
 
 Also, we will [write a small SMTP server from scratch](./Write my own SMTP server from scratch.md) (mostly copy it from [gomail](https://github.com/go-gomail/gomail) )
+
+

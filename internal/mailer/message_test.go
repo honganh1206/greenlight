@@ -1,6 +1,10 @@
 package mailer
 
-import "testing"
+import (
+	"bytes"
+	"io"
+	"testing"
+)
 
 type message struct {
 	from    string
@@ -46,11 +50,56 @@ func TestMessage(t *testing.T) {
 	testMessage(t, m, 0, want)
 }
 
-// HELPER FUNCTIONS
-
+// ////////////////////////// HELPER FUNCTIONS
 func testMessage(t *testing.T, m *Message, bCount int, want *message) {
+	// stubSendMail satisfies the Sender interface
+	// Thus we can pass stubSendEmail for the parameter s of type Sender
 	err := Send(stubSendMail(t, bCount, want), m)
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func stubSendMail(t *testing.T, bCount int, want *message) SendFunc {
+	return func(from string, to []string, m io.WriterTo) error {
+		if from != want.from {
+			t.Fatalf("invalid from, got %q, want %q", from, want.from)
+		}
+
+		if len(to) != len(want.to) {
+			t.Fatalf("invalid recipient count, \ngot %d: %q\nwant %d: %q", len(to), to, len(want.to), want.to)
+		}
+
+		for i := range want.to {
+			if to[i] != want.to[i] {
+				t.Fatalf("invalid recipient, \ngot: %q\nwant: %q", to, want.to)
+			}
+		}
+
+		buf := new(bytes.Buffer)
+		_, err := m.WriteTo(buf)
+		if err != nil {
+			t.Error(err)
+		}
+
+		// got := buf.String()
+
+		// wantMsg := string("Mime-Version: 1.0\r\n" +
+		// 	"Date: Wed, 25 Jun 2014 17:46:00 +0000\r\n" +
+		// 	want.content)
+
+		// When we need attachment, MIME boundaries will be > 0
+		// TODO: Add this later when we do attachments
+		// if bCount > 0 {
+		// 	boundaries := getBoundaries(t, bCount, got)
+		// 	for i, b := range boundaries {
+		// 		wantMsg = strings.Replace(wantMsg, "_BOUNDARY_"+strconv.Itoa(i+1)+"_", b, -1)
+		// 	}
+		// }
+
+		// TODO: Add this later
+		// compareBodies(t, got, wantMsg)
+
+		return nil
 	}
 }
