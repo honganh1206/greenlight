@@ -6,18 +6,8 @@ I aim to keep it minimal, so at this point of writing, I will ignore TLS configu
 
 Establish and maintain connections to remote mail servers or clients
 
-## MIME (Multipurpose Internet Mail Extensions)
+[[MIME]]
 
-The `mime.WordEncoder` encodes the body of the email according to MIME standards, including multiplart messages e.g., plain text and HTML content, attachments and character encoding
+[[Email headers]]
 
-## Encoding
-
-### Base64 encoding vs. Quoted-printable encoding
-
-| Base64                                                                      | Quoted-printable                  |
-| --------------------------------------------------------------------------- | --------------------------------- |
-| Encode binary data (e.g., attachments, images) or non-ASCII text in headers | Encode ASCII-compatible text data |
-
-## MIME boundaries
-
-Used to separate different part of a multipart email message (like when an email has both text and attachment)
+[[Encoding]]

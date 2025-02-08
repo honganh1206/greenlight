@@ -41,11 +41,28 @@ type Message struct {
 	buf      bytes.Buffer
 }
 
+// Represent different parts/sections of an email message in MIME format
+// message := NewMessage()
+// message.SetBody("text/html", `
+//
+//	<html>
+//	    <body>
+//	        <h1>Welcome</h1>
+//	        <img src="cid:logo.png">
+//	    </body>
+//	</html>
+//
+// `)
+// message.Embed("logo.png")
+// message.Attach("report.pdf")
 type part struct {
 	contentType string
 	copier      func(io.Writer) error
 	encoding    Encoding
 }
+
+// Configure the part added to the message
+type PartSetting func(*part)
 
 // A function type that takes a pointer and modify it
 // Can be used as an ARGUMENT to configure an email
@@ -130,7 +147,7 @@ func (m *Message) FormatDate(date time.Time) string {
 
 // Replace any content set by SetBody, AddAlternative or AddAlternativeWriter
 func (m *Message) SetBody(contentType, body string, settings ...PartSetting) {
-	m.parts := []*part{m.newPart(contentType, newCopier(body), settings)}
+	m.parts = []*part{m.newPart(contentType, newCopier(body), settings)}
 }
 
 //////////////// HELPER FUNCTIONS
@@ -159,5 +176,27 @@ func hasSpecials(text string) bool {
 func (m *Message) applySettings(settings []MessageSetting) {
 	for _, s := range settings {
 		s(m)
+	}
+}
+
+func (m *Message) newPart(contentType string, f func(io.Writer) error, settings []PartSetting) *part {
+	p := &part{
+		contentType: contentType,
+		copier:      f,
+		encoding:    m.encoding,
+	}
+
+	for _, s := range settings {
+		// Modify the part here
+		s(p)
+	}
+
+	return p
+}
+
+func newCopier(s string) func(io.Writer) error {
+	return func(w io.Writer) error {
+		_, err := io.WriteString(w, s)
+		return err
 	}
 }
