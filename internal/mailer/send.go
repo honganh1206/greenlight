@@ -49,7 +49,6 @@ func send(s Sender, m *Message) error {
 		return err
 	}
 
-	// TODO: Implement WriteTo method for Message
 	if err := s.Send(from, to, m); err != nil {
 		return err
 	}

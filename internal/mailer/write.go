@@ -2,6 +2,7 @@ package mailer
 
 import (
 	"encoding/base64"
+	"errors"
 	"io"
 	"mime/multipart"
 	"strings"
@@ -32,6 +33,28 @@ func newBase64LineWriter(w io.Writer) *base64LineWriter {
 	return &base64LineWriter{w: w}
 }
 
+func (w *base64LineWriter) Write(p []byte) (int, error) {
+	n := 0
+	for len(p)+w.lineLen > maxLineLen {
+		// Write from current position up to the maximum line length,
+		// taking into account how many characters are already on the current line (w.lineLen)
+		w.w.Write(p[:maxLineLen-w.lineLen])
+		// Add CRLF for line wrapping
+		w.w.Write([]byte("\r\n"))
+		// Update p to contain only the remaining unwritten bytes
+		// by slicing off what we just wrote
+		p = p[maxLineLen-w.lineLen:]
+		// Add to our running count of bytes written
+		// (this is how many bytes we just wrote before the line break)
+		n += maxLineLen - w.lineLen
+	}
+
+	w.w.Write(p)
+	w.lineLen += len(p)
+
+	return n + len(p), nil
+}
+
 // Implementation of WriteTo for Message struct
 // To satisfy the io.Writer interface
 func (m *Message) WriteTo(w io.Writer) (int64, error) {
@@ -44,7 +67,15 @@ func (m *Message) WriteTo(w io.Writer) (int64, error) {
 // Implementation of Write for messageWriter struct
 // To satisfy io.Writer interface
 func (w *messageWriter) Write(p []byte) (int, error) {
+	if w.err != nil {
+		return 0, errors.New("cannot write as writer has errors")
+	}
 
+	var n int
+	n, w.err = w.w.Write(p) // Write to the underlying writer
+	w.n += int64(n)
+
+	return n, w.err
 }
 
 func (w *messageWriter) writeMessage(m *Message) {
@@ -230,4 +261,13 @@ func (w *messageWriter) openMultiPart(mimeType string) {
 
 func (m *Message) hasAlternativePart() bool {
 	return len(m.parts) > 1
+}
+
+// Close the multipart writer at the current depth level
+// From innermost part to the outermost one
+func (w *messageWriter) closeMultipart() {
+	if w.depth > 0 {
+		w.writers[w.depth-1].Close()
+		w.depth--
+	}
 }

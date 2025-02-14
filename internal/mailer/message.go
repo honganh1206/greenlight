@@ -150,6 +150,8 @@ func (m *Message) SetBody(contentType, body string, settings ...PartSetting) {
 	m.parts = []*part{m.newPart(contentType, newCopier(body), settings)}
 }
 
+// TODO: Add AddAlternative
+
 //////////////// HELPER FUNCTIONS
 
 func (m *Message) encodeHeader(values []string) {
