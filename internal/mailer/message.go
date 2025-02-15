@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"mime"
+	"mime/quotedprintable"
 	"time"
 )
 
@@ -17,6 +18,8 @@ type Encoding string
 type mimeEncoder struct {
 	mime.WordEncoder
 }
+
+var newQPWriter = quotedprintable.NewWriter
 
 var (
 	bEncoding = mimeEncoder{mime.BEncoding} // base64 encoding
@@ -86,6 +89,10 @@ func NewMessage(settings ...MessageSetting) *Message {
 	return m
 }
 
+func (m *Message) GetHeader(field string) []string {
+	return m.header[field]
+}
+
 func (m *Message) SetHeader(field string, value ...string) {
 	m.encodeHeader(value)
 	m.header[field] = value
@@ -150,7 +157,13 @@ func (m *Message) SetBody(contentType, body string, settings ...PartSetting) {
 	m.parts = []*part{m.newPart(contentType, newCopier(body), settings)}
 }
 
-// TODO: Add AddAlternative
+func (m *Message) AddAlternative(contentType, body string, settings ...PartSetting) {
+	m.AddAlternativeWriter(contentType, newCopier(body), settings...)
+}
+
+func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error, settings ...PartSetting) {
+	m.parts = append(m.parts, m.newPart(contentType, f, settings))
+}
 
 //////////////// HELPER FUNCTIONS
 

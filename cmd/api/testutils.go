@@ -51,6 +51,7 @@ func newTestApplication(_ *testing.T, tl *testLogger) *application {
 	return &application{
 		logger: tl.Logger,
 		models: mocks.NewMockModels(),
+		mailer: mocks.NewMockMailer(),
 	}
 }
 

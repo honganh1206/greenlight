@@ -2,7 +2,6 @@ package mailer
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -104,34 +103,27 @@ func (d *Dialer) Dial() (SendCloser, error) {
 	}
 
 	if d.Auth == nil && d.Username != "" {
-		// CRAM-MD5 is oudated, so we will skip it for now
-		ok, auths := c.Extension("AUTH")
-		if !ok {
-			return nil, errors.New("no supported auth methods")
-		}
-
-		// Split the auths string into slice
-		methods := strings.Fields(auths)
-
-		for _, method := range methods {
-			switch method {
-			case "PLAIN":
-				// Use smtp lib configs
-				d.Auth = smtp.PlainAuth("", d.Username, d.Password, d.Host)
-				break
-			case "LOGIN":
-				// Use our own auth mechanism
+		if ok, auths := c.Extension("AUTH"); ok {
+			if strings.Contains(auths, "CRAM-MD5") {
+				d.Auth = smtp.CRAMMD5Auth(d.Username, d.Password)
+			} else if strings.Contains(auths, "LOGIN") &&
+				!strings.Contains(auths, "PLAIN") {
 				d.Auth = &loginAuth{
 					username: d.Username,
 					password: d.Password,
 					host:     d.Host,
 				}
-				break
-			default:
-				return nil, errors.New("no supported auth methods")
+			} else {
+				d.Auth = smtp.PlainAuth("", d.Username, d.Password, d.Host)
 			}
 		}
+	}
 
+	if d.Auth != nil {
+		if err = c.Auth(d.Auth); err != nil {
+			c.Close()
+			return nil, err
+		}
 	}
 
 	return &smtpSender{c, d}, nil

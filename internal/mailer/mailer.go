@@ -14,17 +14,25 @@ import (
 var templateFS embed.FS
 
 type Mailer struct {
-	dialer *Dialer
-	sender string
+	Dialer *Dialer
+	Sender string
+}
+
+type MailerConfig struct {
+	Host     string
+	Port     int
+	Username string
+	Password string
+	Sender   string
 }
 
 func New(host string, port int, username, password, sender string) *Mailer {
 	dialer := NewDialer(host, port, username, password)
 
-	dialer.Timeout = 5 * time.Second
+	dialer.Timeout = 20 * time.Second
 	return &Mailer{
-		dialer: dialer,
-		sender: sender,
+		Dialer: dialer,
+		Sender: sender,
 	}
 }
 
@@ -49,19 +57,30 @@ func (m *Mailer) Send(recipient, templateFile string, data any) error {
 	if err != nil {
 		return err
 	}
+	// fmt.Println(plainBody)
 
 	htmlBody := new(bytes.Buffer)
 	err = tmpl.ExecuteTemplate(htmlBody, "htmlBody", data)
 	if err != nil {
 		return err
 	}
+
 	msg := NewMessage()
 	msg.SetHeader("To", recipient)
-	msg.SetHeader("From", m.sender)
+	msg.SetHeader("From", m.Sender)
 	msg.SetHeader("Subject", subject.String())
 	msg.SetBody("text/plain", plainBody.String())
 	msg.AddAlternative("text/html", htmlBody.String())
 
-	return nil
+	// FIXME: Remove hard-coded retry times
+	for i := 1; i <= 3; i++ {
+		err = m.Dialer.DialAndSend(msg)
+		if err == nil {
+			return nil
+		}
+		// Sleep for a short time and retry
+		time.Sleep(500 * time.Millisecond)
+	}
 
+	return err
 }

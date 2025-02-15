@@ -50,6 +50,37 @@ func TestMessage(t *testing.T) {
 	testMessage(t, m, 0, want)
 }
 
+func TestAlternative(t *testing.T) {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain", "¡Hola, señor!")
+	m.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
+
+	want := &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: multipart/alternative;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
+			"\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: text/plain; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: quoted-printable\r\n" +
+			"\r\n" +
+			"=C2=A1Hola, se=C3=B1or!\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: text/html; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: quoted-printable\r\n" +
+			"\r\n" +
+			"=C2=A1<b>Hola</b>, <i>se=C3=B1or</i>!</h1>\r\n" +
+			"--_BOUNDARY_1_--\r\n",
+	}
+
+	testMessage(t, m, 1, want)
+}
+
 // ////////////////////////// HELPER FUNCTIONS
 func testMessage(t *testing.T, m *Message, bCount int, want *message) {
 	// stubSendMail satisfies the Sender interface
@@ -88,8 +119,8 @@ func stubSendMail(t *testing.T, bCount int, want *message) SendFunc {
 		// 	"Date: Wed, 25 Jun 2014 17:46:00 +0000\r\n" +
 		// 	want.content)
 
-		// When we need attachment, MIME boundaries will be > 0
-		// TODO: Add this later when we do attachments
+		// // When we need attachment, MIME boundaries will be > 0
+		// // TODO: Add this later when we do attachments
 		// if bCount > 0 {
 		// 	boundaries := getBoundaries(t, bCount, got)
 		// 	for i, b := range boundaries {
