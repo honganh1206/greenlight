@@ -29,7 +29,7 @@ type MailerConfig struct {
 func New(host string, port int, username, password, sender string) *Mailer {
 	dialer := NewDialer(host, port, username, password)
 
-	dialer.Timeout = 20 * time.Second
+	dialer.Timeout = 5 * time.Second
 	return &Mailer{
 		Dialer: dialer,
 		Sender: sender,

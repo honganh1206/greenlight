@@ -44,7 +44,18 @@ func (app *application) serve() error {
 		// Shutdown() will return nil if the graceful shutdown is successful
 		// Error if not
 		// Whatever the return is, we relay it
-		shutdownError <- srv.Shutdown(ctx)
+		err := srv.Shutdown(ctx)
+		if err != nil {
+			shutdownError <- err
+		}
+
+		app.logger.Info("completing background tasks", map[string]string{
+			"addr": srv.Addr,
+		})
+
+		// Wait until the counter is 0 i.e. no background goroutine running left
+		app.wg.Wait()
+		shutdownError <- nil
 
 	}()
 

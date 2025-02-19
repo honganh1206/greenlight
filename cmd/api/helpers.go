@@ -161,3 +161,17 @@ func (app *application) consistentTimeHandler(operation func() error, minDuratio
 		return errors.New("operation timed out")
 	}
 }
+
+func (app *application) background(fn func()) {
+	app.wg.Add(1)
+	go func() {
+		// Catch panic and log error instead of terminating the application
+		defer app.wg.Done()
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.Error(fmt.Errorf("%s", err), nil)
+			}
+		}()
+	}()
+	fn()
+}

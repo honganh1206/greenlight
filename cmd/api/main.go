@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -32,6 +33,7 @@ type application struct {
 	logger *logger.Logger
 	models *data.Models
 	mailer *mailer.Mailer
+	wg     sync.WaitGroup
 }
 
 func main() {

@@ -1,0 +1,45 @@
+meta {
+  name: Add an user
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:4000/v1/users
+  body: json
+  auth: none
+}
+
+body:json {
+  {{requestBody}}
+}
+
+script:pre-request {
+  // Define an array of sample first names and last names for variety
+  const firstNames = [
+      "Alice", "Bob", "Charlie", "David", "Eve", 
+      "Frank", "Grace", "Henry", "Isabel", "Jack"
+  ];
+  
+  const lastNames = [
+      "Smith", "Johnson", "Williams", "Brown", "Jones",
+      "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"
+  ];
+  
+  // Select random name components
+  const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  
+  // Generate a unique ID
+  const uniqueId = Math.floor(Math.random() * 1000) + 1; // Random ID between 1 and 1000
+  
+  // Construct the user object
+  const userObject = {
+      name: `${randomFirstName} ${randomLastName}`,
+      email: `${randomFirstName.toLowerCase()}${uniqueId}@example.com`,
+      password: "pa55word"
+  };
+  
+  // Set the request body
+  req.setBody(userObject)
+}

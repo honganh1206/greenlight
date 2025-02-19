@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
-	"time"
 
 	"greenlight.honganhpham.net/internal/assert"
 )
@@ -190,16 +189,16 @@ func TestRegisterUserHandler(t *testing.T) {
 	HELPER FUNCTIONS
 */
 
-func measureResponseTime(t *testing.T, ts *testServer, inputJSON string) time.Duration {
-	start := time.Now()
-	ts.post(t, UserV1, []byte(inputJSON))
-	return time.Since(start)
-}
+// func measureResponseTime(t *testing.T, ts *testServer, inputJSON string) time.Duration {
+// 	start := time.Now()
+// 	ts.post(t, UserV1, []byte(inputJSON))
+// 	return time.Since(start)
+// }
 
-func averageDuration(durations []time.Duration) time.Duration {
-	var total time.Duration
-	for _, d := range durations {
-		total += d
-	}
-	return total / time.Duration(len(durations))
-}
+// func averageDuration(durations []time.Duration) time.Duration {
+// 	var total time.Duration
+// 	for _, d := range durations {
+// 		total += d
+// 	}
+// 	return total / time.Duration(len(durations))
+// }

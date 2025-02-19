@@ -12,4 +12,6 @@ Our user welcome email template (as a `.tmpl` file)will have 3 parts:
 
 Also, we will [write a small SMTP server from scratch](./Write my own SMTP server from scratch.md) (mostly copy it from [gomail](https://github.com/go-gomail/gomail) )
 
+A way to reduce latency to the total request/response round-trip when sending emails is to use **background routines**
 
+[[Graceful Shutdown of Background Tasks]]

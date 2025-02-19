@@ -12,3 +12,5 @@
 - [[Structured Logging and Error Handling]]
 - [Graceful Shutdown](Graceful%20Shutdown.md)
 - [User Model Setup and Registration](User%20Model%20Setup%20and%20Registration.md)
+- [[Sending Emails]]
+- [[User Activation]]
