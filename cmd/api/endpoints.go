@@ -5,4 +5,5 @@ const (
 	MovieV1       = "/v1/movies"
 	UserV1        = "/v1/users"
 	HealthCheckV1 = "/v1/healthcheck"
+	TokenV1       = "/v1/tokens"
 )
