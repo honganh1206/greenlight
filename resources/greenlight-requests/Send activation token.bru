@@ -1,0 +1,15 @@
+meta {
+  name: Send activation token
+  type: http
+  seq: 12
+}
+
+post {
+  url: http://localhost:4000/v1/tokens/activation
+  body: json
+  auth: none
+}
+
+body:json {
+  {"email": "bob@example.com"}
+}

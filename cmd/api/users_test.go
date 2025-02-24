@@ -185,6 +185,127 @@ func TestRegisterUserHandler(t *testing.T) {
 	// }
 }
 
+func TestActivateUserHandler(t *testing.T) {
+	tl := newTestLogger(t)
+
+	t.Cleanup(func() {
+		tl.Reset()
+	})
+
+	app := newTestApplication(t, tl)
+	ts := newTestServer(t, app)
+	defer ts.Close()
+
+	tests := []struct {
+		name           string
+		inputJSON      string
+		expectedStatus int
+		checkResponse  func(*testing.T, []byte)
+	}{
+		{
+			name: "Valid Activation",
+			inputJSON: `{
+                "token": "VALIDTOKEN123456789ABCDEFGHIJK"
+            }`,
+			expectedStatus: http.StatusOK,
+			checkResponse: func(t *testing.T, body []byte) {
+				var response struct {
+					User struct {
+						Activated bool `json:"activated"`
+					} `json:"user"`
+				}
+				err := json.Unmarshal(body, &response)
+				assert.NilError(t, err)
+				assert.Equal(t, response.User.Activated, true)
+			},
+		},
+		{
+			name: "Invalid Token Format",
+			inputJSON: `{
+                "token": "tooshort"
+            }`,
+			expectedStatus: http.StatusUnprocessableEntity,
+			checkResponse: func(t *testing.T, body []byte) {
+				var response struct {
+					Error map[string]string `json:"error"`
+				}
+				err := json.Unmarshal(body, &response)
+				assert.NilError(t, err)
+				assert.Equal(t, response.Error["token"] != "", true)
+			},
+		},
+		{
+			name: "Expired Token",
+			inputJSON: `{
+                "token": "EXPIREDTOKEN23456789ABCDEFGHIJK"
+            }`,
+			expectedStatus: http.StatusUnprocessableEntity,
+			checkResponse: func(t *testing.T, body []byte) {
+				var response struct {
+					Error map[string]string `json:"error"`
+				}
+				err := json.Unmarshal(body, &response)
+				assert.NilError(t, err)
+				assert.Equal(t, response.Error["token"], "invalid or expired activation token")
+			},
+		},
+		{
+			name: "Missing Token",
+			inputJSON: `{
+                "token": ""
+            }`,
+			expectedStatus: http.StatusUnprocessableEntity,
+			checkResponse: func(t *testing.T, body []byte) {
+				var response struct {
+					Error map[string]string `json:"error"`
+				}
+				err := json.Unmarshal(body, &response)
+				assert.NilError(t, err)
+				assert.Equal(t, response.Error["token"], "must be provided")
+			},
+		},
+		{
+			name:           "Invalid JSON",
+			inputJSON:      `{"token": "VALIDTOKEN"`,
+			expectedStatus: http.StatusBadRequest,
+			checkResponse: func(t *testing.T, body []byte) {
+				var response struct {
+					Error map[string]string `json:"error"`
+				}
+				err := json.Unmarshal(body, &response)
+				assert.NilError(t, err)
+				assert.Equal(t, response.Error != nil, true)
+			},
+		},
+		{
+			name: "Already Activated User",
+			inputJSON: `{
+                "token": "ACTIVATEDTOKEN3456789ABCDEFGHIJK"
+            }`,
+			expectedStatus: http.StatusUnprocessableEntity,
+			checkResponse: func(t *testing.T, body []byte) {
+				var response struct {
+					Error map[string]string `json:"error"`
+				}
+				err := json.Unmarshal(body, &response)
+				assert.NilError(t, err)
+				assert.Equal(t, response.Error["token"] != "", true)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			code, _, body := ts.post(t, "/v1/users/activate", []byte(tt.inputJSON))
+			assert.Equal(t, code, tt.expectedStatus)
+
+			if tt.checkResponse != nil {
+				tt.checkResponse(t, body)
+			}
+		})
+	}
+}
+
 /*
 	HELPER FUNCTIONS
 */

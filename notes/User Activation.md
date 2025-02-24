@@ -27,3 +27,14 @@ Two reasons why we instruct users to activate by issuing a `PUT` request instead
 
 1. We do not use `GET` since it should only be used to fetch resources
 2. The user's web browser or antivirus will pre-fetch the link URL in the background, inadvertently activating the account
+
+We also need a `createActivationTokenHandler` for re-sending activation tokens
+
+## Activating a user
+
+The relationship between the `users` and `tokens` tables is a **one-to-many relationship**: One user can have many tokens, but a token only belongs to one user
+
+How to activate a user:
+
+1. The user submits the token received in the email, and our app compares the received token with the one in the database
+2. Once it checks out, we remove the activation token associated with that user + update the `activated` field to `true`

@@ -10,13 +10,12 @@ type MockUserModel struct {
 	users map[string]*data.User
 }
 
-// Mock user for testing
 var mockUser = &data.User{
 	ID:        1,
 	CreatedAt: time.Now(),
 	Name:      "Mock User",
 	Email:     "mock@example.com",
-	Activated: true,
+	Activated: false,
 	Version:   1,
 }
 
