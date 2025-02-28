@@ -277,7 +277,7 @@ func TestUpdateMovieHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			code, _, _ := ts.update(t, tt.urlPath, []byte(tt.inputJSON))
+			code, _, _ := ts.patch(t, tt.urlPath, []byte(tt.inputJSON))
 			assert.Equal(t, code, tt.expectedStatus)
 		})
 	}

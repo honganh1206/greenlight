@@ -101,7 +101,36 @@ func (ts *testServer) post(t *testing.T, urlPath string, body []byte) (int, http
 	return rs.StatusCode, rs.Header, respBody
 }
 
-func (ts *testServer) update(t *testing.T, urlPath string, body []byte) (int, http.Header, string) {
+func (ts *testServer) put(t *testing.T, urlPath string, body []byte) (int, http.Header, []byte) {
+	// Create a new PATCH request (include partial updates)
+	req, err := http.NewRequest(http.MethodPut, ts.URL+urlPath, bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Set the content type header
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request using the test server's client
+	rs, err := ts.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer rs.Body.Close()
+
+	// Read the response body
+	respBody, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bytes.TrimSpace(respBody)
+
+	return rs.StatusCode, rs.Header, respBody
+}
+
+func (ts *testServer) patch(t *testing.T, urlPath string, body []byte) (int, http.Header, []byte) {
 	// Create a new PATCH request (include partial updates)
 	req, err := http.NewRequest(http.MethodPatch, ts.URL+urlPath, bytes.NewReader(body))
 	if err != nil {
@@ -127,7 +156,7 @@ func (ts *testServer) update(t *testing.T, urlPath string, body []byte) (int, ht
 
 	bytes.TrimSpace(respBody)
 
-	return rs.StatusCode, rs.Header, string(respBody)
+	return rs.StatusCode, rs.Header, respBody
 }
 
 func (ts *testServer) delete(t *testing.T, urlPath string) (int, http.Header, string) {

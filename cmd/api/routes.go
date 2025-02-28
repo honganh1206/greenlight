@@ -32,6 +32,8 @@ func (app *application) routes() []route {
 		newRoute(http.MethodPatch, MovieV1+"/([0-9]+)", app.updateMovieHandler),
 		newRoute(http.MethodDelete, MovieV1+"/([0-9]+)", app.deleteMovieHandler),
 		newRoute(http.MethodPost, UserV1, app.registerUserHandler),
+		newRoute(http.MethodPost, UserV1, app.registerUserHandler),
+		newRoute(http.MethodPut, UserV1+"/activated", app.activateUserHandler),
 		newRoute(http.MethodGet, "/panic", app.panicHandler),
 		newRoute(http.MethodPost, TokenV1+"/activation", app.createActivationTokenHandler),
 	}

@@ -107,6 +107,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 
 	if data.ValidateTokenPlaintext(v, input.TokenPlaintext); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
+		return
 	}
 
 	// Retrieve info of the user associated with the token

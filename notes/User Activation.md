@@ -38,3 +38,5 @@ How to activate a user:
 
 1. The user submits the token received in the email, and our app compares the received token with the one in the database
 2. Once it checks out, we remove the activation token associated with that user + update the `activated` field to `true`
+
+[[Web application workflow]]
