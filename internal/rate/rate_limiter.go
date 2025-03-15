@@ -26,7 +26,7 @@ func New(cfg LimiterConfig) *Limiter {
 	}
 
 	// Init burst capacity
-	for i := 0; i < cfg.BurstSize; i++ {
+	for range cfg.BurstSize {
 		rl.burstyLimiter <- time.Now()
 	}
 

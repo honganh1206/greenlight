@@ -64,7 +64,7 @@ func (app *application) serve() error {
 		"env":  app.config.env,
 	})
 
-	// Calling SHutdown() successfully means ListenAndServe() will IMMEDIATELY return an error
+	// Calling Shutdown() successfully means ListenAndServe() will IMMEDIATELY return an error
 	// It is actually a good thing: That means the graceful shutdown has started!
 	err := srv.ListenAndServe()
 

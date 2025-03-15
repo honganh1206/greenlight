@@ -33,7 +33,8 @@ type application struct {
 	logger *logger.Logger
 	models *data.Models
 	mailer *mailer.Mailer
-	wg     sync.WaitGroup
+	// cache  Cache
+	wg sync.WaitGroup
 }
 
 func main() {
@@ -92,6 +93,12 @@ func main() {
 		logger: logger,
 		models: data.NewModels(db),
 		mailer: mailer.New(cfg.smtp.Host, cfg.smtp.Port, cfg.smtp.Username, cfg.smtp.Password, cfg.smtp.Sender),
+		// cache:  cache.New(logger),
+	}
+
+	// defer app.cache.Close()
+	if err != nil {
+		logger.Fatal(err, nil)
 	}
 
 	err = app.serve()
