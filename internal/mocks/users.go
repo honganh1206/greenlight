@@ -15,6 +15,7 @@ var mockUser = &data.User{
 	CreatedAt: time.Now(),
 	Name:      "Mock User",
 	Email:     "mock@example.com",
+	// Password: &data.,
 	Activated: false,
 	Version:   1,
 }

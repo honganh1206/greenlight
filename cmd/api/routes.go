@@ -36,6 +36,7 @@ func (app *application) routes() []route {
 		newRoute(http.MethodPut, UserV1+"/activated", app.activateUserHandler),
 		newRoute(http.MethodGet, "/panic", app.panicHandler),
 		newRoute(http.MethodPost, TokenV1+"/activation", app.createActivationTokenHandler),
+		newRoute(http.MethodPost, TokenV1+"/authentication", app.createAuthenticationTokenHandler),
 	}
 }
 
