@@ -23,3 +23,5 @@ Otherwise -> Stateful authentication tokens
 2. Look up the user record based on the email and check if the password provided is correct
 3. Invoke the `New()` method to generate 24-hour token with the scope `authentication`
 4. Send the token back to the client in JSON
+
+[[Reading and writing to the request context]]

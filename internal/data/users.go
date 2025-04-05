@@ -23,6 +23,12 @@ type User struct {
 	Version   int       `json:"-"`
 }
 
+var AnonymousUser = &User{}
+
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
+}
+
 type UserModel struct {
 	DB *sql.DB
 }

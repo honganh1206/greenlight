@@ -9,10 +9,11 @@ import (
 // And we can just pass fields of the app struct to the method
 func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	env := envelope{
-		"status":      "available",
-		"environment": app.config.env,
-		"version":     version,
-	}
+		"status": "available",
+		"system_info": map[string]string{
+			"environment": app.config.env,
+			"version":     version,
+		}}
 
 	// Delay for testing
 	// time.Sleep(4 * time.Second)

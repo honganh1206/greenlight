@@ -15,7 +15,7 @@ import (
 func (app *application) serve() error {
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.port), // String formatting
-		Handler:      app.recoverPanic(app.rateLimit(http.HandlerFunc(app.ServeHTTP))),
+		Handler:      app.recoverPanic(app.rateLimit(app.authenticate(http.HandlerFunc(app.ServeHTTP)))),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second, // TODO: Hardcoded values here
 		WriteTimeout: 30 * time.Second,
