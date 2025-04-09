@@ -15,3 +15,4 @@
 - [[Sending Emails]]
 - [[User Activation]]
 - [[Authentication Options]]
+- [[Permission-based Authorization]]
