@@ -39,7 +39,7 @@ There are risks of leaking this information:
 Two ways to deal with this:
 
 - [>] 1. Ensure the response to the client is always exactly the same, irrespective of whether the user exists or not
-- [>] 2. Ensure the **time** taken to send the response is _always the same_, irrespective of whether a user exists or not
+- [x] 2. Ensure the **time** taken to send the response is _always the same_, irrespective of whether a user exists or not
 
 > [!NOTE]
 > I might have gone overkill with this one, but this is worth the learning effort I guess
@@ -50,5 +50,5 @@ For the 2nd approach, we will use **a background goroutine to handle the registr
 2. Timeout control
 3. Independent timing control: The main goroutine handles timing while the background one handles the operation
 4. Better resource management: A background goroutine can handle multiple registrations concurrently, and the garbage collector can collect timed-out registrations
-5. Future extensibility: We can integrate a rate limiter to the `consistentTimeHandler`
+5. Future extensibility: We can integrate a rate limiter to the `consistentTime`
 6. Easier testing + Cleaner error handling

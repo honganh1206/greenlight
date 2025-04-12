@@ -55,14 +55,21 @@ func newTestApplication(_ *testing.T, tl *testLogger) *application {
 	}
 }
 
-func newTestServer(_ *testing.T, h http.Handler) *testServer {
-	ts := httptest.NewTLSServer(h)
+func newTestServer(_ *testing.T, app *application) *testServer {
+	handler := (app.authenticate(http.HandlerFunc(app.ServeHTTP)))
+
+	ts := httptest.NewTLSServer(handler)
 	return &testServer{ts}
 }
 
 // Make a GET request to a given URL and return the status code, headers and body
-func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, string) {
-	rs, err := ts.Client().Get(ts.URL + urlPath)
+func (ts *testServer) get(t *testing.T, urlPath string, token string) (int, http.Header, string) {
+	req, err := http.NewRequest(http.MethodGet, ts.URL+urlPath, nil)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	rs, err := ts.Client().Do(req)
 
 	if err != nil {
 		t.Fatal(err)
@@ -81,33 +88,43 @@ func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, strin
 	return rs.StatusCode, rs.Header, string(body)
 }
 
-func (ts *testServer) post(t *testing.T, urlPath string, body []byte) (int, http.Header, []byte) {
-	rs, err := ts.Client().Post(ts.URL+urlPath, "application/json", bytes.NewReader(body))
+func (ts *testServer) post(t *testing.T, urlPath string, token string, body []byte) (int, http.Header, []byte) {
+	req, err := http.NewRequest(http.MethodPost, ts.URL+urlPath, bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	req.Header.Set("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	rs, err := ts.Client().Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	defer rs.Body.Close()
-
 	respBody, err := io.ReadAll(rs.Body)
-
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	bytes.TrimSpace(respBody)
-
 	return rs.StatusCode, rs.Header, respBody
 }
 
-func (ts *testServer) put(t *testing.T, urlPath string, body []byte) (int, http.Header, []byte) {
+func (ts *testServer) put(t *testing.T, urlPath string, token string, body []byte) (int, http.Header, []byte) {
 	// Create a new PATCH request (include partial updates)
 	req, err := http.NewRequest(http.MethodPut, ts.URL+urlPath, bytes.NewReader(body))
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	req.Header.Set("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
 	// Set the content type header
 	req.Header.Set("Content-Type", "application/json")
 
@@ -130,13 +147,18 @@ func (ts *testServer) put(t *testing.T, urlPath string, body []byte) (int, http.
 	return rs.StatusCode, rs.Header, respBody
 }
 
-func (ts *testServer) patch(t *testing.T, urlPath string, body []byte) (int, http.Header, []byte) {
+func (ts *testServer) patch(t *testing.T, urlPath string, token string, body []byte) (int, http.Header, []byte) {
 	// Create a new PATCH request (include partial updates)
 	req, err := http.NewRequest(http.MethodPatch, ts.URL+urlPath, bytes.NewReader(body))
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	req.Header.Set("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
 	// Set the content type header
 	req.Header.Set("Content-Type", "application/json")
 
@@ -159,10 +181,15 @@ func (ts *testServer) patch(t *testing.T, urlPath string, body []byte) (int, htt
 	return rs.StatusCode, rs.Header, respBody
 }
 
-func (ts *testServer) delete(t *testing.T, urlPath string) (int, http.Header, string) {
+func (ts *testServer) delete(t *testing.T, urlPath string, token string) (int, http.Header, string) {
 	req, err := http.NewRequest(http.MethodDelete, ts.URL+urlPath, nil)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
 	}
 
 	rs, err := ts.Client().Do(req)
@@ -194,7 +221,7 @@ func TestHealthCheck(t *testing.T) {
 
 	defer ts.Close()
 
-	code, _, body := ts.get(t, HealthCheckV1)
+	code, _, body := ts.get(t, HealthCheckV1, "")
 
 	assert.Equal(t, code, http.StatusOK)
 

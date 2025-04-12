@@ -136,14 +136,14 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 }
 
 // Ensure consistent processing time for sensitive operations
-func (app *application) consistentTimeHandler(operation func() error, minDuration time.Duration) error {
+func (app *application) consistentTime(fn func() error, minDuration time.Duration) error {
 
 	startTime := time.Now()
 
 	done := make(chan error, 1)
 
 	go func() {
-		done <- operation()
+		done <- fn()
 	}()
 
 	// Wait for one of multiple channel operations to complete

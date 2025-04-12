@@ -27,8 +27,8 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	v := validator.New()
 
 	var user *data.User
-	// This part is way overkill: Ensure the time taken to send the response is always the same
-	err = app.consistentTimeHandler(func() error {
+	// Ensure the time taken to send the response is always the same
+	err = app.consistentTime(func() error {
 		user = &data.User{
 			Name:      input.Name,
 			Email:     input.Email,
@@ -46,11 +46,9 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 			return err
 		}
 
-		// Test timeout
-		// time.Sleep(4 *time.Second)
-
 		return app.models.Users.Insert(user)
 	}, minProcessingTime)
+
 	if err != nil {
 		switch {
 		// FIXME: Change response message to send email even if duplicate

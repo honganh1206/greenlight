@@ -11,16 +11,18 @@ var (
 )
 
 type Models struct {
-	Movies MovieModelInterface
-	Users  UserModelInterface
-	Token  TokenModelInterface
+	Movies     MovieModelInterface
+	Users      UserModelInterface
+	Token      TokenModelInterface
+	Permission PermissionModelInterface
 }
 
 func NewModels(db *sql.DB) *Models {
 	// Return pointer type to ensure we are working with the same instance
 	return &Models{
-		Movies: MovieModel{DB: db},
-		Users:  UserModel{DB: db},
-		Token:  TokenModel{DB: db},
+		Movies:     MovieModel{DB: db},
+		Users:      UserModel{DB: db},
+		Token:      TokenModel{DB: db},
+		Permission: PermissionModel{DB: db},
 	}
 }

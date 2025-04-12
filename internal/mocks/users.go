@@ -10,16 +10,6 @@ type MockUserModel struct {
 	users map[string]*data.User
 }
 
-var mockUser = &data.User{
-	ID:        1,
-	CreatedAt: time.Now(),
-	Name:      "Mock User",
-	Email:     "mock@example.com",
-	// Password: &data.,
-	Activated: false,
-	Version:   1,
-}
-
 func (m MockUserModel) Insert(user *data.User) error {
 	if _, exists := m.users[user.Email]; exists {
 		return data.ErrDuplicateEmail
@@ -35,12 +25,12 @@ func (m MockUserModel) Insert(user *data.User) error {
 
 // GetByEmail simulates fetching a user by email
 func (m MockUserModel) GetByEmail(email string) (*data.User, error) {
-	switch email {
-	case "mock@example.com":
-		return mockUser, nil
-	default:
-		return nil, data.ErrRecordNotFound
+	if user, exists := m.users[email]; exists {
+		// Return a copy to prevent modifications to the original
+		userCopy := *user
+		return &userCopy, nil
 	}
+	return nil, data.ErrRecordNotFound
 }
 
 func (m MockUserModel) Update(user *data.User) error {
@@ -48,5 +38,5 @@ func (m MockUserModel) Update(user *data.User) error {
 }
 
 func (m MockUserModel) GetForToken(tokenScope, tokenPlaintext string) (*data.User, error) {
-	return mockUser, nil
+	return m.users["mock@example.com"], nil
 }

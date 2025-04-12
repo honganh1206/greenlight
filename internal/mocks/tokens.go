@@ -27,7 +27,7 @@ func (m MockTokenModel) New(userID int64, ttl time.Duration, scope string) (*dat
 
 	// Create a new token with the provided parameters
 	token := &data.Token{
-		Plaintext: "MOCKTOKEN123456789ABCDEFGHIJK", // Fixed test token
+		Plaintext: "Y3QMGX3PJ3WLRL2YRTQGQ6KRHU",
 		Hash:      []byte("mockhash"),
 		UserID:    userID,
 		Expiry:    time.Now().Add(ttl),

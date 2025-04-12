@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"greenlight.honganhpham.net/internal/assert"
+	"greenlight.honganhpham.net/internal/data"
 )
 
 func TestRegisterUserHandler(t *testing.T) {
@@ -141,11 +143,17 @@ func TestRegisterUserHandler(t *testing.T) {
 	// Store timing measurements for consistent-time operations
 	// var timings []time.Duration
 
+	token, err := app.models.Token.New(1, 24*time.Hour, data.ScopeAuthentication)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Tracking the total amount of time to make a request
 			// start := time.Now()
-			code, _, body := ts.post(t, UserV1, []byte(tt.inputJSON))
+			code, _, body := ts.post(t, UserV1, token.Plaintext, []byte(tt.inputJSON))
 			// duration := time.Since(start)
 			assert.Equal(t, code, tt.expectedStatus)
 
@@ -257,9 +265,14 @@ func TestActivateUserHandler(t *testing.T) {
 		},
 	}
 
+	token, err := app.models.Token.New(1, 24*time.Hour, data.ScopeActivation)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			code, _, body := ts.put(t, UserV1+"/activated", []byte(tt.inputJSON))
+			code, _, body := ts.put(t, UserV1+"/activated", token.Plaintext, []byte(tt.inputJSON))
 			assert.Equal(t, code, tt.expectedStatus)
 
 			if tt.expectedBody != nil {
