@@ -143,7 +143,7 @@ func TestRegisterUserHandler(t *testing.T) {
 	// Store timing measurements for consistent-time operations
 	// var timings []time.Duration
 
-	token, err := app.models.Token.New(1, 24*time.Hour, data.ScopeAuthentication)
+	token, err := app.models.Tokens.New(1, 24*time.Hour, data.ScopeAuthentication)
 
 	if err != nil {
 		t.Fatal(err)
@@ -265,7 +265,7 @@ func TestActivateUserHandler(t *testing.T) {
 		},
 	}
 
-	token, err := app.models.Token.New(1, 24*time.Hour, data.ScopeActivation)
+	token, err := app.models.Tokens.New(1, 24*time.Hour, data.ScopeActivation)
 	if err != nil {
 		t.Fatal(err)
 	}

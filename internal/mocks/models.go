@@ -9,9 +9,10 @@ import (
 
 func NewMockModels() *data.Models {
 	return &data.Models{
-		Movies: MockMovieModel{},
-		Users:  newMockUserModel(),
-		Token:  newMockTokenModel(),
+		Movies:      MockMovieModel{},
+		Users:       newMockUserModel(),
+		Tokens:      newMockTokenModel(),
+		Permissions: newMockPermissionModel(),
 	}
 }
 
@@ -42,7 +43,6 @@ func newMockUserModel() *MockUserModel {
 	}
 }
 
-// NewMockTokenModel creates a new instance of MockTokenModel with initialized fields
 func newMockTokenModel() *MockTokenModel {
 	return &MockTokenModel{
 		Tokens: map[int64]*data.Token{
@@ -55,5 +55,17 @@ func NewMockMailer() *mailer.Mailer {
 	return &mailer.Mailer{
 		Dialer: mailer.NewDialer("localhost", 25, "username@example.com", "password"),
 		Sender: "sender@example.com",
+	}
+}
+
+func newMockPermissionModel() *MockPermissionModel {
+	permissions := make(map[int64]data.Permissions)
+
+	// Add some mock permissions for test users
+	permissions[1] = data.Permissions{"movies:read", "movies:write"} // for mock@example.com user
+	permissions[2] = data.Permissions{"movies:read"}                 // for not_activated@example.com user
+
+	return &MockPermissionModel{
+		permissions: permissions,
 	}
 }

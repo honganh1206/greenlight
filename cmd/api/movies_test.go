@@ -124,7 +124,7 @@ func TestCreateMovieHandler(t *testing.T) {
 		},
 	}
 
-	token, err := app.models.Token.New(1, 24*time.Hour, data.ScopeAuthentication)
+	token, err := app.models.Tokens.New(1, 24*time.Hour, data.ScopeAuthentication)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -187,7 +187,7 @@ func TestShowMovieHandler(t *testing.T) {
 		},
 	}
 
-	token, err := app.models.Token.New(1, 24*time.Hour, data.ScopeAuthentication)
+	token, err := app.models.Tokens.New(1, 24*time.Hour, data.ScopeAuthentication)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -287,7 +287,7 @@ func TestUpdateMovieHandler(t *testing.T) {
 		},
 	}
 
-	token, err := app.models.Token.New(1, 24*time.Hour, data.ScopeAuthentication)
+	token, err := app.models.Tokens.New(1, 24*time.Hour, data.ScopeAuthentication)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -340,7 +340,7 @@ func TestDeleteMovieHandler(t *testing.T) {
 		},
 	}
 
-	token, err := app.models.Token.New(1, 24*time.Hour, data.ScopeAuthentication)
+	token, err := app.models.Tokens.New(1, 24*time.Hour, data.ScopeAuthentication)
 	if err != nil {
 		t.Fatal(err)
 	}
