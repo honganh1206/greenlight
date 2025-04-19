@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -25,6 +26,9 @@ type config struct {
 
 	limiter rate.LimiterConfig
 	smtp    mailer.MailerConfig
+	cors    struct {
+		trustedOrigins []string
+	}
 }
 
 type application struct {
@@ -65,6 +69,10 @@ func main() {
 	flag.StringVar(&cfg.smtp.Password, "smtp-password", os.Getenv("MAILTRAP_SMTP_PASSWORD"), "SMTP password")
 	flag.StringVar(&cfg.smtp.Sender, "smtp-sender", os.Getenv("MAILTRAP_SMTP_SENDER"), "SMTP sender")
 	debug := flag.Bool("debug", false, "Enable debug mode")
+	flag.Func("cors-trusted-origins", "Trusted CORS origins(space separated)", func(val string) error {
+		cfg.cors.trustedOrigins = strings.Fields(val) // Case-sensitive matching
+		return nil
+	})
 	flag.Parse()
 
 	loggerConfig := logger.LoggerConfig{MinLevel: logger.LevelInfo, StackDepth: cfg.calldepth, ShowCaller: true}

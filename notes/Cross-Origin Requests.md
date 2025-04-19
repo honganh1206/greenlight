@@ -23,3 +23,10 @@ The `Origin` header is set by the browser to show where the request originates f
 The `enableCORS` middleware must be early in the middleware chain, otherwise requests that exceed the rate limit will be blocked by the client's web browser rather than receiving a `429 Too Many Requests`
 
 We can only specify **exactly one origin** in the `Access-Control-Allow-Origin` header
+
+Rule of thumb: If your code makes a decision about what to return based on the content of a request header, you should include that header name in your `Vary` response header - Even of the request did not include that header
+
+> [!IMPORTANT]
+> Set `Access-Control-Allow-Credentials: true` in the response if your API endpoints require credentials
+
+[[Preflight CORS requests]]

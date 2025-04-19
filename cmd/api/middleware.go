@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"slices"
+
 	"greenlight.honganhpham.net/internal/data"
 	"greenlight.honganhpham.net/internal/rate"
 	"greenlight.honganhpham.net/internal/validator"
@@ -208,7 +210,26 @@ func (app *application) requirePermission(code string, next http.HandlerFunc) ht
 
 func (app *application) enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Vary", "Origin") // Warn caches that responses might be different
+		w.Header().Set("Vary", "Access-Control-Request-Method")
+		origin := r.Header.Get("Origin")
+		if origin != "" {
+			if slices.Contains(app.config.cors.trustedOrigins, origin) {
+				// The trusted origins must match case-sensitive, otherwise ANY cross-origin responses will be blocked
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+
+				// Check preflight request
+				if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
+					w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, PUT, PATCH, DELETE")
+					w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+					w.Header().Set("Access-Control-Max-Age", "60") // Caching preflight response for 60s
+
+					// Supposed to be 204 No Content, but some browser versions might not support 204
+					w.WriteHeader(http.StatusOK)
+					return
+				}
+			}
+		}
 		next.ServeHTTP(w, r)
 	})
 }
