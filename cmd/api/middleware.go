@@ -2,10 +2,12 @@ package main
 
 import (
 	"errors"
+	"expvar"
 	"fmt"
 	"net"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -13,6 +15,7 @@ import (
 	"slices"
 
 	"greenlight.honganhpham.net/internal/data"
+	"greenlight.honganhpham.net/internal/middleware"
 	"greenlight.honganhpham.net/internal/rate"
 	"greenlight.honganhpham.net/internal/validator"
 )
@@ -231,5 +234,39 @@ func (app *application) enableCORS(next http.Handler) http.Handler {
 			}
 		}
 		next.ServeHTTP(w, r)
+	})
+}
+
+// Request-level metrics
+func (app *application) metrics(next http.Handler) http.Handler {
+	totalRequestsReceived := expvar.NewInt("total_requests_received")
+	totalResponsesSent := expvar.NewInt("total_responses_sent")
+	totalProcessingTimeMicroseconds := expvar.NewInt("total_processing_time_microsecs")
+	activeInflightRequests := expvar.NewInt("active_inflight_requests")
+	// Hold the count of responses for each HTTP status code
+	totalResponsesSentByStatus := expvar.NewMap("total_responses_sent_by_status")
+
+	// Run for every request
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ew := middleware.ExtendedResponseWriter(w)
+
+		start := time.Now()
+
+		totalRequestsReceived.Add(1)
+
+		next.ServeHTTP(ew, r)
+
+		ew.Done()
+
+		// On the way back up the middleware chain we increase the total responses
+		totalResponsesSent.Add(1)
+
+		// Calculate the total number of seconds since we began processing the request
+		duration := time.Since(start).Microseconds()
+		totalProcessingTimeMicroseconds.Add(duration)
+
+		activeInflightRequests.Add(totalRequestsReceived.Value() - totalResponsesSent.Value())
+
+		totalResponsesSentByStatus.Add(strconv.Itoa(ew.StatusCode), 1)
 	})
 }

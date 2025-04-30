@@ -17,3 +17,4 @@
 - [[Authentication Options]]
 - [[Permission-based Authorization]]
 - [[Cross-Origin Requests]]
+- [[Metrics]]

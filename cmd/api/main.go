@@ -1,11 +1,14 @@
 package main
 
 import (
+	"expvar"
 	"flag"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -94,6 +97,20 @@ func main() {
 	defer db.Close()
 
 	logger.Info("database connection pool establised", nil)
+
+	expvar.NewString("version").Set(version)
+
+	expvar.Publish("database", expvar.Func(func() any {
+		return db.Stats()
+	}))
+
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
+
+	expvar.Publish("timestamp", expvar.Func(func() any {
+		return time.Now()
+	}))
 
 	app := &application{
 		debug:  *debug,

@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"maps"
+
 	"greenlight.honganhpham.net/internal/validator"
 )
 
@@ -39,9 +41,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data envelo
 	js = append(js, '\n')
 
 	// No error when ranging over a nil map
-	for k, v := range headers {
-		w.Header()[k] = v
-	}
+	maps.Copy(w.Header(), headers)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"expvar"
 	"net/http"
 	"regexp"
 	"strings"
@@ -37,6 +38,10 @@ func (app *application) routes() []route {
 		newRoute(http.MethodGet, "/panic", app.panicHandler),
 		newRoute(http.MethodPost, TokenV1+"/activation", app.createActivationTokenHandler),
 		newRoute(http.MethodPost, TokenV1+"/authentication", app.createAuthenticationTokenHandler),
+		// The HandlerFunc passes on the request and response objects to expvar.Handler() for th actual work
+		newRoute(http.MethodGet, "/debug/vars", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			expvar.Handler().ServeHTTP(w, r)
+		})),
 	}
 }
 
