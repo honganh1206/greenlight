@@ -64,7 +64,7 @@ func newTestServer(_ *testing.T, app *application) *testServer {
 
 // Make a GET request to a given URL and return the status code, headers and body
 func (ts *testServer) get(t *testing.T, urlPath string, token string) (int, http.Header, string) {
-	req, err := http.NewRequest(http.MethodGet, ts.URL+urlPath, nil)
+	req, _ := http.NewRequest(http.MethodGet, ts.URL+urlPath, nil)
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}

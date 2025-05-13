@@ -27,7 +27,6 @@ func (w *CustomResponseWriter) Header() http.Header {
 func (w *CustomResponseWriter) WriteHeader(statusCode int) {
 	w.StatusCode = statusCode
 	w.responseWriter.WriteHeader(statusCode)
-	return
 }
 
 func (w *CustomResponseWriter) Done() {
@@ -35,6 +34,4 @@ func (w *CustomResponseWriter) Done() {
 	if w.StatusCode == 0 {
 		w.StatusCode = http.StatusOK
 	}
-
-	return
 }

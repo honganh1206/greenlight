@@ -158,6 +158,10 @@ func (l *Logger) output(level Level, msg string, props map[string]string) (int, 
 
 	jsonData, err := json.Marshal(aux)
 
+	if err != nil {
+		return 0, err
+	}
+
 	*buf = append(*buf, jsonData...)
 	*buf = append(*buf, '\n') // Ensure newline
 

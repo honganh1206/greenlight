@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/smtp"
+	"slices"
 )
 
 // Implement the LOGIN authentication mechanism
@@ -16,13 +17,7 @@ type loginAuth struct {
 
 func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
 	if !server.TLS {
-		advertised := false // Announced authentication mechanism
-		for _, mechanism := range server.Auth {
-			if mechanism == "LOGIN" {
-				advertised = true
-				break
-			}
-		}
+		advertised := slices.Contains(server.Auth, "LOGIN")
 		if !advertised {
 			return "", nil, errors.New("unencrypted connection")
 		}
