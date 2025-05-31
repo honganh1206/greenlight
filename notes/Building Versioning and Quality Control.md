@@ -39,3 +39,7 @@ include .envrc
 [[Quality control code]]
 
 [[Module Proxies and Vendoring]]
+
+> `go build` caches the build output in the Go build cache. If we do not want so, we can use `go clean` to purge the cache
+
+We can use `go version -m` to embed version control information in our executable binaries

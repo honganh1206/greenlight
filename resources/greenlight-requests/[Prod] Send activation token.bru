@@ -1,0 +1,15 @@
+meta {
+  name: [Prod] Send activation token
+  type: http
+  seq: 12
+}
+
+post {
+  url: https://greenlight-honganhpham.xyz/v1/tokens/activation
+  body: json
+  auth: none
+}
+
+body:json {
+  {"email": "alice850@example.com"}
+}

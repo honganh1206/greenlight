@@ -1,0 +1,15 @@
+meta {
+  name: [Prod] Activate user
+  type: http
+  seq: 14
+}
+
+put {
+  url: https://greenlight-honganhpham.xyz/v1/users/activated
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {"token": "QDKMC5MCKXQBGHKF4OIMVHMGKY"}
+}

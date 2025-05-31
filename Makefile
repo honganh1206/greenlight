@@ -18,6 +18,14 @@ confirm:
 # DEVELOPMENT
 # ==================================================================================== #
 
+.PHONY: build/api
+build/api:
+	@echo 'Building cmd/api...'
+	# Reduce binary size by stripping the DWARF debugging information
+	go build -ldflags='-s' -o=./bin/api ./cmd/api
+	# Cross-compilation
+	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/api ./cmd/api
+
 ## run/api: run the cmd/api application
 .PHONY: run/api
 run/api:
@@ -46,9 +54,6 @@ db/migrations/up: confirm
 ## audit: tidy dependencies and format, vet and test all code
 .PHONY: audit
 audit:
-	@echo 'Tidying and verifying module dependencies...'
-	go mod tidy
-	go mod verify
 	@echo 'Formatting code...'
 	go fmt ./...
 	@echo 'Vetting code...'
@@ -63,4 +68,30 @@ vendor:
 	go mod tidy
 	go mod verify
 	@echo 'Vendoring dependencies...'
-	go mod vendor@echo 'Tidying
+	go mod vendor
+
+# ==================================================================================== #
+# PRODUCTION
+# ==================================================================================== #
+
+## production/connect: connect to the production server
+.PHONY: production/connect
+production/connect:
+	ssh greenlight@${GREENLIGHT_PRODUCTION_HOST_IP}
+
+## production/deploy/api: deploy the api to production
+.PHONY: production/deploy/api
+production/deploy/api:
+	rsync -P ./bin/linux_amd64/api greenlight@${GREENLIGHT_PRODUCTION_HOST_IP}:~
+	rsync -rP --delete ./migrations greenlight@${GREENLIGHT_PRODUCTION_HOST_IP}:~
+	rsync -P ./remote/production/api.service greenlight@${GREENLIGHT_PRODUCTION_HOST_IP}:~
+	rsync -P ./remote/production/Caddyfile greenlight@${GREENLIGHT_PRODUCTION_HOST_IP}:~
+	# Actual command running on the droplet: 'migrate -path ~/migrations -database $GREENLIGHT_DB_DSN up'
+	ssh -t greenlight@${GREENLIGHT_PRODUCTION_HOST_IP} '\
+	    migrate -path ~/migrations -database $$GREENLIGHT_DB_DSN up \
+		&& sudo mv ~/api.service /etc/systemd/system/ \
+        && sudo systemctl enable api \
+        && sudo systemctl restart api \
+        && sudo mv ~/Caddyfile /etc/caddy/ \
+        && sudo systemctl reload caddy \
+'

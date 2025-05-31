@@ -4,7 +4,6 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
-	"net"
 	"net/http"
 	"runtime/debug"
 	"strconv"
@@ -14,6 +13,7 @@ import (
 
 	"slices"
 
+	"github.com/tomasen/realip"
 	"greenlight.honganhpham.net/internal/data"
 	"greenlight.honganhpham.net/internal/middleware"
 	"greenlight.honganhpham.net/internal/rate"
@@ -52,7 +52,6 @@ func (app *application) recoverPanic(next http.Handler) http.Handler { // Return
 }
 
 func (app *application) rateLimit(next http.Handler) http.Handler {
-
 	type client struct {
 		limiter  *rate.Limiter
 		lastSeen time.Time
@@ -84,12 +83,8 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if app.config.limiter.Enabled {
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
-
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
+			// Get the client's real IP address
+			ip := realip.FromRequest(r)
 
 			// Prevent this code from being executed concurrently
 			mu.Lock()

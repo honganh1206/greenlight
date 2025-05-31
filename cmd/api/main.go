@@ -3,23 +3,22 @@ package main
 import (
 	"expvar"
 	"flag"
-	"log"
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"greenlight.honganhpham.net/internal/data"
 	"greenlight.honganhpham.net/internal/logger"
 	"greenlight.honganhpham.net/internal/mailer"
 	"greenlight.honganhpham.net/internal/rate"
+	"greenlight.honganhpham.net/internal/vcs"
 )
 
-// TODO: Generate this automatically in build time
-const version = "1.0.0"
+var version = vcs.Version()
 
 type config struct {
 	port      int
@@ -45,19 +44,12 @@ type application struct {
 }
 
 func main() {
-	err := godotenv.Load("./.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	dsn := os.Getenv("GREENLIGHT_DB_DSN")
-	// port := os.Getenv("APP_PORT")
-
 	var cfg config
 
 	// Read values from command-line flags to struct
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", dsn, "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
@@ -67,16 +59,24 @@ func main() {
 	flag.IntVar(&cfg.limiter.QueueSize, "limiter-queue", 3, "Rate limiter maximum queue size")
 	flag.BoolVar(&cfg.limiter.Enabled, "limiter-enabled", true, "Enable rate limiter")
 	flag.StringVar(&cfg.smtp.Host, "smtp-host", os.Getenv("MAILTRAP_SMTP_HOST"), "SMTP host")
-	flag.IntVar(&cfg.smtp.Port, "smtp-port", 1025, "SMTP port")
+	flag.IntVar(&cfg.smtp.Port, "smtp-port", 2525, "SMTP port")
 	flag.StringVar(&cfg.smtp.Username, "smtp-username", os.Getenv("MAILTRAP_SMTP_USERNAME"), "SMTP username")
 	flag.StringVar(&cfg.smtp.Password, "smtp-password", os.Getenv("MAILTRAP_SMTP_PASSWORD"), "SMTP password")
-	flag.StringVar(&cfg.smtp.Sender, "smtp-sender", os.Getenv("MAILTRAP_SMTP_SENDER"), "SMTP sender")
+	flag.StringVar(&cfg.smtp.Sender, "smtp-sender", "Greenlight <no-reply@greenlight.honganhpham.net>", "SMTP sender")
 	debug := flag.Bool("debug", false, "Enable debug mode")
 	flag.Func("cors-trusted-origins", "Trusted CORS origins(space separated)", func(val string) error {
 		cfg.cors.trustedOrigins = strings.Fields(val) // Case-sensitive matching
 		return nil
 	})
+
+	displayVersion := flag.Bool("version", false, "Display version and exit")
+
 	flag.Parse()
+
+	if *displayVersion {
+		fmt.Printf("Version:\t%s\t", version)
+		os.Exit(0)
+	}
 
 	loggerConfig := logger.LoggerConfig{MinLevel: logger.LevelInfo, StackDepth: cfg.calldepth, ShowCaller: true}
 	logger := logger.New(os.Stdout, loggerConfig)

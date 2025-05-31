@@ -131,7 +131,7 @@ RETURNING version
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, query, args).Scan(&user.Version)
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Version)
 
 	if err != nil {
 		switch {

@@ -5,6 +5,8 @@ import (
 	"embed"
 	"text/template"
 	"time"
+
+	"github.com/go-mail/mail/v2"
 )
 
 // Embed templates directly into the compiled binary
@@ -14,7 +16,7 @@ import (
 var templateFS embed.FS
 
 type Mailer struct {
-	Dialer *Dialer
+	Dialer *mail.Dialer
 	Sender string
 }
 
@@ -27,7 +29,7 @@ type MailerConfig struct {
 }
 
 func New(host string, port int, username, password, sender string) *Mailer {
-	dialer := NewDialer(host, port, username, password)
+	dialer := mail.NewDialer(host, port, username, password)
 
 	dialer.Timeout = 5 * time.Second
 	return &Mailer{
@@ -65,7 +67,7 @@ func (m *Mailer) Send(recipient, templateFile string, data any) error {
 		return err
 	}
 
-	msg := NewMessage()
+	msg := mail.NewMessage()
 	msg.SetHeader("To", recipient)
 	msg.SetHeader("From", m.Sender)
 	msg.SetHeader("Subject", subject.String())

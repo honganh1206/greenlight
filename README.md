@@ -5,5 +5,5 @@ Golang web project Greenlight, based on the book Let's Go Further by Alex Edward
 - [x] Custom router
 - [x] Custom logger
 - [x] Custom rate limiter
-- [x] Custom SMTP email server
+- [x] Custom SMTP email server (work on local Maildev, not Mailtrap)
 - [x] Custom `ResponseWriter` to fetch status code for metrics
