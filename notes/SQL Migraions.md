@@ -10,6 +10,11 @@
 
 - Follow the [online guide](https://github.com/golang-migrate/migrate/blob/master/cmd/migrate/README.md). Note that if you set go in `/usr/local/go/..` then you should move the pre-built binary to `user/local/go..`
 
+```bash
+# For Go users
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+```
+
 ## Working with SQL migrations
 
 ```bash
